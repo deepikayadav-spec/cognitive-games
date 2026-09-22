@@ -9,15 +9,15 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="common.css">
 <style>
-  body{background:#EAEAEA}
+  body{background:#F2F6FB}
   .wrap{display:flex; flex-direction:column; align-items:center; gap:clamp(18px,4vh,46px)}
   .matrix{display:grid; gap:6px}
   .cell{width:clamp(56px,10vw,98px); height:clamp(56px,10vw,98px); background:#fff;
-    border:1px solid #CFD4DA; display:grid; place-items:center}
-  .cell.q{font-weight:700; font-size:clamp(30px,5vw,52px); color:#3A4450}
+    border:1px solid #D1D8DD; display:grid; place-items:center}
+  .cell.q{font-weight:700; font-size:clamp(30px,5vw,52px); color:#183B56}
   .options{display:flex; gap:clamp(12px,3vw,34px)}
   .opt{width:clamp(58px,10vw,96px); height:clamp(58px,10vw,96px); background:#fff;
-    border:1px solid #CFD4DA; display:grid; place-items:center; cursor:pointer;
+    border:1px solid #D1D8DD; display:grid; place-items:center; cursor:pointer;
     transition:transform .12s, box-shadow .12s}
   .opt:hover{transform:translateY(-3px); box-shadow:0 6px 14px rgba(0,0,0,.16)}
   .opt.right{box-shadow:0 0 0 3px var(--green) inset}
@@ -27,7 +27,7 @@
 /* ---------- feedback widget ---------- */
 .nfb-fab,.nfb-back{
   --nfb-surface:#FFFFFF; --nfb-line:#D6DAE0; --nfb-text:#1B2430; --nfb-dim:#6C7885;
-  --nfb-accent:#F5921E; --nfb-accent-ink:#FFFFFF; --nfb-star:#F5921E;
+  --nfb-accent:#1565D8; --nfb-accent-ink:#FFFFFF; --nfb-star:#1565D8;
   --nfb-radius:8px; --nfb-font:'Poppins',system-ui,sans-serif; --nfb-head:'Poppins',system-ui,sans-serif;
 }
 .nfb-fab{
@@ -122,12 +122,12 @@
 
   /* the symbol set — shape plus colour, so no two read alike */
   var SYMBOLS = [
-    {id:'circle',   c:'#6B8E23'},
-    {id:'triangle', c:'#1A3E8C'},
-    {id:'square',   c:'#E01B1B'},
-    {id:'cross',    c:'#D84315'},
-    {id:'diamond',  c:'#7B1FA2'},
-    {id:'star',     c:'#00838F'}
+    {id:'circle',   c:'#15803D'},
+    {id:'triangle', c:'#1565D8'},
+    {id:'square',   c:'#F3705A'},
+    {id:'cross',    c:'#F97316'},
+    {id:'diamond',  c:'#7C3AED'},
+    {id:'star',     c:'#0E7490'}
   ];
 
   function shapeSVG(sym){

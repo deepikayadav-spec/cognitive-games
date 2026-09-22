@@ -1,10 +1,14 @@
 /* Shared chrome for the cognitive ability games: top bar, overlays, buttons.
    Each game supplies its own board styling on top of this. */
+/* NxtWave palette, taken from nxtwave.co.in:
+   #1565d8 primary blue · #183b56 navy · #ffd15c amber · #f3705a coral
+   #15803d green · #475569 / #64748b / #d1d8dd slates */
 :root{
-  --navy:#12283F; --navy-2:#0E2439; --slate:#4A5A6B; --slate-2:#5E6E7E;
-  --paper:#EAEAEA; --ink:#1B2430; --muted:#6C7885; --line:#D6DAE0;
-  --orange:#F5921E; --red:#B00020; --green:#0B8A0B;
-  --shape-a:#2E7D32; --shape-b:#9C27B0; --shape-c:#1A3E8C; --shape-d:#D84315;
+  --navy:#183B56; --navy-2:#12293D; --slate:#475569; --slate-2:#64748B;
+  --paper:#EEF2F7; --ink:#183B56; --muted:#64748B; --line:#D1D8DD;
+  --brand:#1565D8; --orange:#1565D8; --amber:#FFD15C;
+  --red:#F3705A; --green:#15803D;
+  --shape-a:#15803D; --shape-b:#7C3AED; --shape-c:#1565D8; --shape-d:#F3705A;
   --ff:'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif;
 }
 *{box-sizing:border-box}
@@ -24,7 +28,7 @@ button{font-family:inherit; cursor:pointer}
   padding:7px 16px; border-radius:5px; white-space:nowrap}
 .scorebar{flex:1 1 auto; min-width:60px; height:34px; border-radius:17px; background:#fff;
   position:relative; overflow:hidden; display:grid; place-items:center}
-.scorebar .fill{position:absolute; inset:0; width:0; background:var(--orange); transition:width .3s}
+.scorebar .fill{position:absolute; inset:0; width:0; background:var(--amber); transition:width .3s}
 .scorebar .v{position:relative; font-weight:700; font-size:16px; color:var(--red)}
 .clock{background:var(--slate); color:#fff; font-weight:700; font-size:16px; padding:7px 14px;
   border-radius:5px; font-variant-numeric:tabular-nums; min-width:84px; text-align:center}
@@ -53,14 +57,14 @@ button{font-family:inherit; cursor:pointer}
 .overlay{position:fixed; inset:0; z-index:20; display:grid; place-items:center; padding:18px;
   background:rgba(20,26,34,.72); overflow:auto}
 .overlay[hidden]{display:none}
-.sheet{width:min(920px,100%); background:#4A4A4A; color:#fff; border-radius:4px; padding:26px 28px;
+.sheet{width:min(920px,100%); background:#1F4B6B; color:#fff; border-radius:4px; padding:26px 28px;
   display:flex; flex-direction:column; gap:13px}
-.sheet h1{margin:0; text-align:center; color:var(--orange);
+.sheet h1{margin:0; text-align:center; color:var(--amber);
   font-size:clamp(27px,5vw,42px); font-weight:700}
 .sheet .sub{align-self:center; background:#fff; color:var(--ink); font-weight:700;
   border-radius:4px; padding:5px 16px; font-size:clamp(13px,2vw,17px); text-align:center}
 .sheet p{margin:0; font-size:clamp(14px,1.85vw,18px); line-height:1.5}
-.sheet h2{margin:6px 0 0; text-align:center; color:var(--orange); font-size:clamp(20px,3.4vw,29px)}
+.sheet h2{margin:6px 0 0; text-align:center; color:var(--amber); font-size:clamp(20px,3.4vw,29px)}
 .sheet ul{margin:0; padding-left:20px; display:flex; flex-direction:column; gap:5px;
   font-size:clamp(13.5px,1.8vw,17px)}
 .play{align-self:center; background:var(--orange); color:#fff; border:0; border-radius:4px;

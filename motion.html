@@ -9,25 +9,25 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="common.css">
 <style>
-  body{background:#F2F2F2}
+  body{background:#F2F6FB}
   .wrap{display:flex; flex-direction:column; align-items:center; gap:14px}
-  .grid{display:grid; gap:2px; background:#CFCFCF; padding:2px; touch-action:manipulation}
-  .cell{width:clamp(38px,6.4vw,64px); height:clamp(38px,6.4vw,64px); background:#DCDCDC;
+  .grid{display:grid; gap:2px; background:#C6D2E0; padding:2px; touch-action:manipulation}
+  .cell{width:clamp(38px,6.4vw,64px); height:clamp(38px,6.4vw,64px); background:#DDE5EE;
     position:relative; display:grid; place-items:center}
   .cell.block{cursor:pointer}
-  .cell.sel{outline:3px solid #111; outline-offset:-3px; z-index:2}
+  .cell.sel{outline:3px solid #183B56; outline-offset:-3px; z-index:2}
   .cell.target{cursor:pointer}
   .cell.target::after{content:''; width:34%; height:34%; border-radius:50%;
-    background:rgba(17,17,17,.18)}
+    background:rgba(24,59,86,.22)}
   .cell.wall::after{content:''; width:70%; height:70%;
     background:linear-gradient(45deg,transparent 44%,#fff 44%,#fff 56%,transparent 56%),
                linear-gradient(-45deg,transparent 44%,#fff 44%,#fff 56%,transparent 56%);
-    background-color:#C4C4C4}
-  .hole{width:56%; height:56%; border-radius:50%; background:#111; position:absolute}
-  .ball{width:56%; height:56%; border-radius:50%; background:#B4494B; position:absolute; z-index:3;
+    background-color:#B6C4D4}
+  .hole{width:56%; height:56%; border-radius:50%; background:#183B56; position:absolute}
+  .ball{width:56%; height:56%; border-radius:50%; background:#F3705A; position:absolute; z-index:3;
     box-shadow:inset 0 -3px 6px rgba(0,0,0,.25); cursor:pointer}
   .moves{display:flex; align-items:center; gap:12px}
-  .chip{background:#1B2430; color:#fff; font-weight:700; font-size:19px; padding:8px 18px;
+  .chip{background:#183B56; color:#fff; font-weight:700; font-size:19px; padding:8px 18px;
     border-radius:4px; font-variant-numeric:tabular-nums}
   .chip.low{background:var(--red)}
   .hint{color:var(--muted); font-size:13.5px}
@@ -38,7 +38,7 @@
 /* ---------- feedback widget ---------- */
 .nfb-fab,.nfb-back{
   --nfb-surface:#FFFFFF; --nfb-line:#D6DAE0; --nfb-text:#1B2430; --nfb-dim:#6C7885;
-  --nfb-accent:#F5921E; --nfb-accent-ink:#FFFFFF; --nfb-star:#F5921E;
+  --nfb-accent:#1565D8; --nfb-accent-ink:#FFFFFF; --nfb-star:#1565D8;
   --nfb-radius:8px; --nfb-font:'Poppins',system-ui,sans-serif; --nfb-head:'Poppins',system-ui,sans-serif;
 }
 .nfb-fab{
@@ -132,7 +132,7 @@
   "use strict";
 
   var W = 5, H = 6;
-  var COLOURS = ['#E0B23C','#4A3E9E','#4EC3E0','#8C4A7A','#B4494B','#3C7A4E'];
+  var COLOURS = ['#FFD15C','#7C3AED','#38BDF8','#F3705A','#1565D8','#15803D'];
 
   function idx(r, c){ return r * W + c; }
   function rowOf(i){ return (i / W) | 0; }

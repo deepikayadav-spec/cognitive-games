@@ -9,8 +9,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="common.css">
 <style>
-  body{background:#0B79D0}
-  .board{background:radial-gradient(circle at 50% 45%, #1793E6 0%, #0A63AD 78%); border-radius:4px}
+  body{background:#1565D8}
+  .board{background:radial-gradient(circle at 50% 45%, #2C7BE8 0%, #0F4CA8 78%); border-radius:4px}
   .prompt{color:#fff}
   .wrap{display:flex; flex-direction:column; align-items:center; gap:clamp(6px,1.6vh,16px); padding:8px}
   .row{display:flex; gap:8px}
@@ -20,19 +20,19 @@
   .arrow{width:clamp(44px,7vw,74px); color:#8BC53F}
   .codes{display:flex; gap:clamp(6px,1.6vw,16px)}
   .code{background:#fff; border:0; font-family:inherit; font-weight:600;
-    font-size:clamp(17px,3vw,32px); letter-spacing:.06em; color:#25313D;
+    font-size:clamp(17px,3vw,32px); letter-spacing:.06em; color:#183B56;
     padding:clamp(9px,1.6vh,18px) clamp(12px,2.4vw,30px); cursor:pointer;
     transition:transform .12s, box-shadow .12s}
   .code:hover{transform:translateY(-3px); box-shadow:0 7px 16px rgba(0,0,0,.28)}
   .code.right{box-shadow:0 0 0 4px var(--green) inset}
   .code.wrong{box-shadow:0 0 0 4px var(--red) inset}
-  .label{color:#CFEBFF; font-size:12.5px; font-weight:600; letter-spacing:.16em;
+  .label{color:#D7E6FB; font-size:12.5px; font-weight:600; letter-spacing:.16em;
     text-transform:uppercase}
 
 /* ---------- feedback widget ---------- */
 .nfb-fab,.nfb-back{
   --nfb-surface:#FFFFFF; --nfb-line:#D6DAE0; --nfb-text:#1B2430; --nfb-dim:#6C7885;
-  --nfb-accent:#F5921E; --nfb-accent-ink:#FFFFFF; --nfb-star:#F5921E;
+  --nfb-accent:#1565D8; --nfb-accent-ink:#FFFFFF; --nfb-star:#1565D8;
   --nfb-radius:8px; --nfb-font:'Poppins',system-ui,sans-serif; --nfb-head:'Poppins',system-ui,sans-serif;
 }
 .nfb-fab{
@@ -125,7 +125,7 @@
 (function () {
   "use strict";
 
-  var GREEN = '#8BC53F';
+  var GREEN = '#FFD15C';
   var SHAPES = ['circle','square','triangle','cross','percent','times'];
 
   function shapeSVG(kind){
