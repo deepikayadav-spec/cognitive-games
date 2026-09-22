@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Motion Challenge</title>
+<meta name="theme-color" content="#12283F">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="common.css">
+<style>
+  body{background:#F2F2F2}
+  .wrap{display:flex; flex-direction:column; align-items:center; gap:14px}
+  .grid{display:grid; gap:2px; background:#CFCFCF; padding:2px; touch-action:manipulation}
+  .cell{width:clamp(38px,6.4vw,64px); height:clamp(38px,6.4vw,64px); background:#DCDCDC;
+    position:relative; display:grid; place-items:center}
+  .cell.block{cursor:pointer}
+  .cell.sel{outline:3px solid #111; outline-offset:-3px; z-index:2}
+  .cell.target{cursor:pointer}
+  .cell.target::after{content:''; width:34%; height:34%; border-radius:50%;
+    background:rgba(17,17,17,.18)}
+  .cell.wall::after{content:''; width:70%; height:70%;
+    background:linear-gradient(45deg,transparent 44%,#fff 44%,#fff 56%,transparent 56%),
+               linear-gradient(-45deg,transparent 44%,#fff 44%,#fff 56%,transparent 56%);
+    background-color:#C4C4C4}
+  .hole{width:56%; height:56%; border-radius:50%; background:#111; position:absolute}
+  .ball{width:56%; height:56%; border-radius:50%; background:#B4494B; position:absolute; z-index:3;
+    box-shadow:inset 0 -3px 6px rgba(0,0,0,.25); cursor:pointer}
+  .moves{display:flex; align-items:center; gap:12px}
+  .chip{background:#1B2430; color:#fff; font-weight:700; font-size:19px; padding:8px 18px;
+    border-radius:4px; font-variant-numeric:tabular-nums}
+  .chip.low{background:var(--red)}
+  .hint{color:var(--muted); font-size:13.5px}
+  .giveup{background:transparent; border:1px solid var(--line); border-radius:4px; color:var(--muted);
+    padding:7px 14px; font-size:13px}
+  .giveup:hover{color:var(--ink)}
+
+/* ---------- feedback widget ---------- */
+.nfb-fab,.nfb-back{
+  --nfb-surface:#FFFFFF; --nfb-line:#D6DAE0; --nfb-text:#1B2430; --nfb-dim:#6C7885;
+  --nfb-accent:#F5921E; --nfb-accent-ink:#FFFFFF; --nfb-star:#F5921E;
+  --nfb-radius:8px; --nfb-font:'Poppins',system-ui,sans-serif; --nfb-head:'Poppins',system-ui,sans-serif;
+}
+.nfb-fab{
+  position:fixed;right:16px;bottom:18px;z-index:9990;
+  display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+  font-family:var(--nfb-head);font-size:13px;font-weight:700;line-height:1;
+  padding:11px 16px;border:1px solid var(--nfb-accent);border-radius:999px;
+  color:var(--nfb-accent-ink);background:var(--nfb-accent);
+  box-shadow:0 8px 24px rgba(0,0,0,.34);
+}
+.nfb-fab:hover{filter:brightness(1.08)}
+.nfb-fab:active{transform:translateY(1px)}
+.nfb-fab svg{width:15px;height:15px;flex:none}
+@media (max-width:560px){
+  .nfb-fab b{display:none}
+  .nfb-fab{padding:13px;border-radius:50%;right:12px}
+}
+
+.nfb-back{
+  position:fixed;inset:0;z-index:9991;display:grid;place-items:center;padding:16px;
+  background:rgba(3,7,12,.66);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+  font-family:var(--nfb-font);color:var(--nfb-text);overflow:auto;
+}
+.nfb-back[hidden]{display:none}
+.nfb-card{
+  position:relative;width:min(470px,100%);max-height:calc(100vh - 32px);overflow:auto;
+  background:var(--nfb-surface);border:1px solid var(--nfb-line);
+  border-radius:var(--nfb-radius);padding:20px 20px 18px;
+  box-shadow:0 26px 64px rgba(0,0,0,.46);
+}
+.nfb-card h2{
+  font-family:var(--nfb-head);font-size:19px;font-weight:800;margin:0 0 4px;
+  color:var(--nfb-text);
+}
+.nfb-card p.nfb-sub{margin:0 0 16px;font-size:13.5px;color:var(--nfb-dim);line-height:1.45}
+.nfb-x{
+  position:absolute;top:12px;right:12px;width:30px;height:30px;cursor:pointer;
+  display:grid;place-items:center;font-size:19px;line-height:1;
+  color:var(--nfb-dim);background:none;border:1px solid var(--nfb-line);border-radius:8px;
+}
+.nfb-x:hover{color:var(--nfb-text)}
+.nfb-f{display:block;border:0;padding:0;margin:0 0 15px;min-width:0}
+.nfb-f > span,.nfb-f > legend{
+  display:block;font-size:12.5px;font-weight:700;margin:0 0 7px;padding:0;
+  color:var(--nfb-text);font-family:var(--nfb-head);
+}
+.nfb-f textarea{
+  width:100%;resize:vertical;font:inherit;font-size:14px;line-height:1.5;
+  padding:10px 12px;border-radius:calc(var(--nfb-radius) / 1.6);
+  color:var(--nfb-text);background:transparent;border:1px solid var(--nfb-line);
+}
+.nfb-f textarea::placeholder{color:var(--nfb-dim);opacity:.85}
+.nfb-f textarea:focus{outline:2px solid var(--nfb-accent);outline-offset:1px;border-color:transparent}
+.nfb-stars{display:flex;align-items:center;gap:2px}
+.nfb-star{
+  cursor:pointer;background:none;border:0;padding:2px 3px;line-height:1;
+  font-size:28px;color:var(--nfb-dim);opacity:.5;transition:transform .12s ease;
+}
+.nfb-star.on{color:var(--nfb-star);opacity:1}
+.nfb-star:hover{transform:scale(1.14)}
+.nfb-star:focus-visible{outline:2px solid var(--nfb-accent);outline-offset:2px;border-radius:6px}
+.nfb-slab{margin-left:8px;font-size:12.5px;font-weight:600;color:var(--nfb-dim)}
+.nfb-err{margin:0 0 12px;font-size:12.5px;font-weight:600;color:#B00020}
+.nfb-err[hidden]{display:none}
+.nfb-act{display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap}
+.nfb-act button{
+  cursor:pointer;font-family:var(--nfb-head);font-size:13px;font-weight:700;
+  padding:10px 17px;border-radius:calc(var(--nfb-radius) / 1.4);border:1px solid var(--nfb-line);
+  background:transparent;color:var(--nfb-dim);
+}
+.nfb-act button:hover{color:var(--nfb-text)}
+.nfb-act .nfb-send{
+  color:var(--nfb-accent-ink);background:var(--nfb-accent);border-color:var(--nfb-accent);
+}
+.nfb-act .nfb-send:hover{filter:brightness(1.08);color:var(--nfb-accent-ink)}
+.nfb-done{text-align:center;padding:14px 4px 6px}
+.nfb-done[hidden]{display:none}
+.nfb-done .nfb-tick{font-size:40px;line-height:1;color:var(--nfb-accent)}
+.nfb-done h3{font-family:var(--nfb-head);font-size:17px;margin:10px 0 6px;}
+.nfb-done p{margin:0 0 16px;font-size:13.5px;color:var(--nfb-dim)}
+@media (prefers-reduced-motion:reduce){
+  .nfb-star,.nfb-fab{transition:none}
+  .nfb-star:hover{transform:none}
+}
+</style>
+</head>
+<body>
+<script src="common.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var W = 5, H = 6;
+  var COLOURS = ['#E0B23C','#4A3E9E','#4EC3E0','#8C4A7A','#B4494B','#3C7A4E'];
+
+  function idx(r, c){ return r * W + c; }
+  function rowOf(i){ return (i / W) | 0; }
+  function colOf(i){ return i % W; }
+
+  /* ---------------- puzzle state ---------------- */
+  function cloneState(s){
+    return {blocks:s.blocks.map(function (b){ return b.slice(); }), ball:s.ball};
+  }
+  function key(s){
+    return s.blocks.map(function (b){ return b.join('.'); }).sort().join('|') + '#' + s.ball;
+  }
+  function occupied(s, walls){
+    var set = Object.create(null);
+    walls.forEach(function (w){ set[w] = 'w'; });
+    s.blocks.forEach(function (b, i){ b.forEach(function (c){ set[c] = i; }); });
+    set[s.ball] = 'ball';
+    return set;
+  }
+  var DIRS = [[-1,0],[1,0],[0,-1],[0,1]];
+
+  function moves(s, walls){
+    var out = [], occ = occupied(s, walls), i, d;
+    // the ball
+    for (d = 0; d < 4; d++){
+      var br = rowOf(s.ball) + DIRS[d][0], bc = colOf(s.ball) + DIRS[d][1];
+      if (br < 0 || bc < 0 || br >= H || bc >= W) continue;
+      var t = idx(br, bc);
+      if (occ[t] === undefined){
+        var n = cloneState(s); n.ball = t;
+        out.push({state:n, kind:'ball', dir:d});
+      }
+    }
+    // the blocks
+    for (i = 0; i < s.blocks.length; i++){
+      for (d = 0; d < 4; d++){
+        var cells = s.blocks[i], ok = true, moved = [];
+        for (var k = 0; k < cells.length; k++){
+          var r = rowOf(cells[k]) + DIRS[d][0], c = colOf(cells[k]) + DIRS[d][1];
+          if (r < 0 || c < 0 || r >= H || c >= W){ ok = false; break; }
+          moved.push(idx(r, c));
+        }
+        if (!ok) continue;
+        for (var m = 0; m < moved.length; m++){
+          var who = occ[moved[m]];
+          if (who === undefined) continue;                  // free
+          if (who === i) continue;                          // itself
+          ok = false; break;                                // wall, ball or another block
+        }
+        if (!ok) continue;
+        var ns = cloneState(s);
+        ns.blocks[i] = moved;
+        out.push({state:ns, kind:'block', block:i, dir:d});
+      }
+    }
+    return out;
+  }
+
+  /* can the ball reach the hole on its own, with every block left where it is?
+     If it can, the board is not a puzzle — it is a walk. */
+  function ballWalksIt(s, walls, hole){
+    var occ = occupied(s, walls), seen = Object.create(null), q = [s.ball];
+    seen[s.ball] = true;
+    while (q.length){
+      var cur = q.shift();
+      if (cur === hole) return true;
+      for (var d = 0; d < 4; d++){
+        var r = rowOf(cur) + DIRS[d][0], c = colOf(cur) + DIRS[d][1];
+        if (r < 0 || c < 0 || r >= H || c >= W) continue;
+        var t = idx(r, c);
+        if (seen[t]) continue;
+        if (occ[t] !== undefined && t !== s.ball) continue;
+        seen[t] = true;
+        q.push(t);
+      }
+    }
+    return false;
+  }
+
+  /* shortest number of moves to drop the ball in the hole, or -1 */
+  function solve(s, walls, hole, cap){
+    if (s.ball === hole) return 0;
+    var seen = Object.create(null), queue = [{s:s, d:0}], head = 0;
+    seen[key(s)] = true;
+    while (head < queue.length){
+      var cur = queue[head++];
+      if (cur.d >= (cap || 14)) continue;
+      var nexts = moves(cur.s, walls);
+      for (var i = 0; i < nexts.length; i++){
+        var ns = nexts[i].state, k = key(ns);
+        if (seen[k]) continue;
+        if (ns.ball === hole) return cur.d + 1;
+        seen[k] = true;
+        queue.push({s:ns, d:cur.d + 1});
+        if (queue.length > 60000) return -1;
+      }
+    }
+    return -1;
+  }
+
+  /* ---------------- level generation ---------------- */
+  function generate(level){
+    var blockCount = level < 3 ? 3 : level < 6 ? 4 : 5;
+    var wallCount = level < 4 ? 1 : 2;
+    var wantMin = Math.min(4 + Math.floor(level / 2), 9);
+
+    for (var attempt = 0; attempt < 900; attempt++){
+      var taken = Object.create(null), walls = [], blocks = [], ok = true;
+
+      var hole = idx(CG.randInt(2), CG.randInt(W));
+      taken[hole] = 'hole';                       // blocks may pass over it, the ball must reach it
+
+      var ball = idx(H - 1 - CG.randInt(2), CG.randInt(W));
+      if (taken[ball]) continue;
+      taken[ball] = 'ball';
+
+      for (var b = 0; b < blockCount && ok; b++){
+        var placed = false;
+        for (var tries = 0; tries < 60 && !placed; tries++){
+          var horizontal = Math.random() < 0.5;
+          var len = 2 + (Math.random() < 0.25 ? 1 : 0);
+          var r0 = CG.randInt(H), c0 = CG.randInt(W), cells = [];
+          for (var q = 0; q < len; q++){
+            var rr = r0 + (horizontal ? 0 : q), cc = c0 + (horizontal ? q : 0);
+            if (rr >= H || cc >= W){ cells = null; break; }
+            cells.push(idx(rr, cc));
+          }
+          if (!cells) continue;
+          if (cells.some(function (c){ return taken[c] !== undefined && taken[c] !== 'hole'; })) continue;
+          if (cells.some(function (c){ return c === hole; })) continue;
+          cells.forEach(function (c){ taken[c] = 'block'; });
+          blocks.push(cells);
+          placed = true;
+        }
+        if (!placed) ok = false;
+      }
+      if (!ok) continue;
+
+      for (var w = 0; w < wallCount; w++){
+        for (var wt = 0; wt < 40; wt++){
+          var cell = CG.randInt(W * H);
+          if (taken[cell] === undefined){ taken[cell] = 'wall'; walls.push(cell); break; }
+        }
+      }
+
+      var state = {blocks:blocks, ball:ball};
+      if (ballWalksIt(state, walls, hole)) continue;   // a block must be in the way
+      var best = solve(state, walls, hole, 12);
+      if (best >= wantMin && best <= 12){
+        return {state:state, walls:walls, hole:hole, best:best};
+      }
+    }
+    return null;
+  }
+
+  /* ---------------- level ---------------- */
+  function buildLevel(api, board){
+    var puzzle = generate(api.level());
+    if (!puzzle){                                  // never seen, but never leave a blank board
+      api.prompt('Shuffling a new board…');
+      api.after(200, api.nextLevel);
+      return;
+    }
+
+    var state = puzzle.state, walls = puzzle.walls, hole = puzzle.hole;
+    var limit = puzzle.best + 2, used = 0, selected = null, done = false;
+
+    var wrap = CG.el('div', 'wrap');
+    var grid = CG.el('div', 'grid');
+    grid.style.gridTemplateColumns = 'repeat(' + W + ',auto)';
+
+    var cells = [];
+    for (var i = 0; i < W * H; i++){
+      var cell = CG.el('div', 'cell');
+      cells.push(cell);
+      grid.appendChild(cell);
+    }
+
+    var movesRow = CG.el('div', 'moves');
+    var chip = CG.el('div', 'chip', '0');
+    var hint = CG.el('div', 'hint', 'moves used of ' + limit);
+    var giveUp = CG.el('button', 'giveup', 'Skip this board');
+    movesRow.appendChild(chip); movesRow.appendChild(hint); movesRow.appendChild(giveUp);
+
+    giveUp.addEventListener('click', function (){
+      if (done || api.locked()) return;
+      done = true;
+      api.wrong('−1');
+    });
+
+    function draw(){
+      var occ = occupied(state, walls);
+      cells.forEach(function (cell, i){
+        cell.className = 'cell';
+        cell.innerHTML = '';
+        if (walls.indexOf(i) >= 0) cell.classList.add('wall');
+        if (i === hole) cell.appendChild(CG.el('div', 'hole'));
+        var who = occ[i];
+        if (typeof who === 'number'){
+          cell.classList.add('block');
+          cell.style.background = COLOURS[who % COLOURS.length];
+          if (selected === 'b' + who) cell.classList.add('sel');
+        } else {
+          cell.style.background = '';
+        }
+        if (i === state.ball){
+          var ball = CG.el('div', 'ball');
+          if (selected === 'ball') cell.classList.add('sel');
+          cell.appendChild(ball);
+        }
+      });
+      markTargets();
+      chip.textContent = used;
+      chip.className = 'chip' + (limit - used <= 1 ? ' low' : '');
+    }
+
+    function markTargets(){
+      if (!selected) return;
+      var legal = moves(state, walls);
+      legal.forEach(function (mv){
+        if (selected === 'ball' && mv.kind === 'ball') cells[mv.state.ball].classList.add('target');
+        if (selected === ('b' + mv.block) && mv.kind === 'block'){
+          // the leading cell of the move is the one the player aims at
+          mv.state.blocks[mv.block].forEach(function (c){
+            if (state.blocks[mv.block].indexOf(c) < 0) cells[c].classList.add('target');
+          });
+        }
+      });
+    }
+
+    function tryMove(dir){
+      if (done || !selected) return;
+      var legal = moves(state, walls);
+      for (var i = 0; i < legal.length; i++){
+        var mv = legal[i];
+        if (mv.dir !== dir) continue;
+        if (selected === 'ball' && mv.kind === 'ball'){ commit(mv); return; }
+        if (mv.kind === 'block' && selected === 'b' + mv.block){ commit(mv); return; }
+      }
+      CG.beep(180, 70, 'square');
+    }
+
+    function commit(mv){
+      state = mv.state;
+      used++;
+      CG.beep(mv.kind === 'ball' ? 540 : 420, 70);
+      draw();
+      if (state.ball === hole){
+        done = true;
+        api.right('+4');
+        return;
+      }
+      if (used >= limit){
+        done = true;
+        api.wrong('Out of moves');
+      }
+    }
+
+    grid.addEventListener('click', function (e){
+      if (done || api.locked()) return;
+      var cell = e.target.closest('.cell');
+      if (!cell) return;
+      var i = cells.indexOf(cell);
+      if (i < 0) return;
+
+      var occ = occupied(state, walls);
+      if (i === state.ball){ selected = selected === 'ball' ? null : 'ball'; draw(); return; }
+      if (typeof occ[i] === 'number'){
+        selected = selected === 'b' + occ[i] ? null : 'b' + occ[i];
+        draw();
+        return;
+      }
+      // an empty square: move the selection there if that is a legal single step
+      if (!selected) return;
+      var legal = moves(state, walls);
+      for (var m = 0; m < legal.length; m++){
+        var mv = legal[m];
+        if (selected === 'ball' && mv.kind === 'ball' && mv.state.ball === i){ commit(mv); return; }
+        if (mv.kind === 'block' && selected === 'b' + mv.block){
+          var newCells = mv.state.blocks[mv.block];
+          if (newCells.indexOf(i) >= 0 && state.blocks[mv.block].indexOf(i) < 0){ commit(mv); return; }
+        }
+      }
+    });
+
+    var keyHandler = function (e){
+      var map = {arrowup:0, w:0, arrowdown:1, s:1, arrowleft:2, a:2, arrowright:3, d:3};
+      var k = e.key.toLowerCase();
+      if (!(k in map)) return;
+      e.preventDefault();
+      if (!selected) selected = 'ball';
+      tryMove(map[k]);
+    };
+    window.addEventListener('keydown', keyHandler);
+    board.addEventListener('DOMNodeRemoved', function once(){
+      window.removeEventListener('keydown', keyHandler);
+      board.removeEventListener('DOMNodeRemoved', once);
+    });
+
+    wrap.appendChild(grid);
+    wrap.appendChild(movesRow);
+    board.appendChild(wrap);
+    draw();
+    api.prompt('Clear a path and roll the ball into the hole — ' + limit + ' moves');
+  }
+
+  CG.create({
+    name:'Motion Challenge',
+    tag:'Imagination, Decision making, Time Management',
+    prompt:'Move the blocks, get the ball to the hole',
+    intro:['In this game you are given a grid designed with coloured and uncoloured squares. In ' +
+           'addition to this the grid consists of a red ball and a black hole in different squares. ' +
+           'Your aim is to move the red ball into the black hole. You can move the ball only into ' +
+           'the uncoloured squares. The squares with a cross mark cannot be moved.',
+           'You can move the coloured squares horizontally and vertically into the uncoloured ' +
+           'squares. Every time you move a coloured square or the ball it is counted as one move, ' +
+           'so you must move the red ball into the hole within the given limited number of moves. ' +
+           'You can move the squares upon the black hole but you cannot move them upon the ball.',
+           'Click a block or the ball to select it, then click where it should go — or use the ' +
+           'arrow keys.'],
+    howto:['Time duration is four minutes.',
+           'For every correct attempt 4 marks is awarded.',
+           'For every incorrect attempt 1 mark is deducted.'],
+    session:240,
+    levelTime:null,
+    pointsRight:4, pointsWrong:1, scoreFull:80,
+    nextDelay:900,
+    buildLevel:buildLevel
+  });
+})();
+</script>
+
+<!-- feedback widget: start (shared across the NIAT games; wire nfbConfig below) -->
+<button type="button" class="nfb-fab" id="nfbFab" aria-haspopup="dialog" title="Share feedback">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.3 9.3 0 0 1-3.3-.6L3 21l1.8-4.9A8.1 8.1 0 0 1 3.6 11.5 8.4 8.4 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4Z"></path></svg>
+  <b>Feedback</b>
+</button>
+
+<div class="nfb-back" id="nfbBack" hidden>
+  <div class="nfb-card" role="dialog" aria-modal="true" aria-labelledby="nfbTitle">
+    <button type="button" class="nfb-x" id="nfbClose" aria-label="Close feedback">&times;</button>
+    <h2 id="nfbTitle">Share your feedback</h2>
+    <p class="nfb-sub">Half a minute, three questions. It goes straight to the NIAT team.</p>
+
+    <form id="nfbForm" novalidate>
+      <fieldset class="nfb-f">
+        <legend>1. How would you rate Motion Challenge?</legend>
+        <div class="nfb-stars" id="nfbStars" role="radiogroup" aria-label="Star rating"></div>
+        <span class="nfb-slab" id="nfbSlab">Pick a star</span>
+      </fieldset>
+
+      <label class="nfb-f">
+        <span>2. Additional feedback</span>
+        <textarea id="nfbText" rows="3" placeholder="What worked well, what got in your way&hellip;"></textarea>
+      </label>
+
+      <label class="nfb-f">
+        <span>3. Anything you want to add or change?</span>
+        <textarea id="nfbChange" rows="3" placeholder="A level, a feature, a fix you would like&hellip;"></textarea>
+      </label>
+
+      <p class="nfb-err" id="nfbErr" hidden></p>
+      <div class="nfb-act">
+        <button type="button" id="nfbCancel">Cancel</button>
+        <button type="submit" class="nfb-send" id="nfbSend">Send feedback</button>
+      </div>
+    </form>
+
+    <div class="nfb-done" id="nfbDone" hidden>
+      <div class="nfb-tick">&#10003;</div>
+      <h3>Thanks &mdash; that helps.</h3>
+      <p>Your feedback reached the team.</p>
+      <div class="nfb-act"><button type="button" class="nfb-send" id="nfbBackToGame">Back to Motion Challenge</button></div>
+    </div>
+  </div>
+</div>
+
+<iframe name="nfb-sink" id="nfbSink" title="feedback sink" aria-hidden="true" tabindex="-1"
+  style="position:absolute;left:-9999px;width:0;height:0;border:0"></iframe>
+<!-- feedback widget: end -->
+<script>
+/* ---------- feedback widget ----------
+   Three questions -> a Google Form. Fill nfbConfig in once per game:
+
+     action  the Form's POST URL. Open the live form, copy the address-bar
+             URL and swap the trailing "/viewform" for "/formResponse".
+     rating / feedback / change
+             the three field ids. On the live form use View Source and search
+             for "entry." - each answer box carries an entry.NNNNNNNNN name,
+             in the order the questions appear.
+
+   Until it is filled in, answers are kept in this browser's localStorage
+   (key "niat.feedback.<game>") and posted on the next load once a form is
+   configured, so nothing a student types is lost. */
+(function () {
+  "use strict";
+
+  var nfbConfig = {
+    game: "motion",
+    action: "",   // https://docs.google.com/forms/d/e/FORM_ID/formResponse
+    rating: "",   // entry.000000000  -> star rating
+    feedback: "", // entry.000000000  -> additional feedback
+    change: ""    // entry.000000000  -> anything to add or change
+  };
+
+  var LABELS = ["", "Poor", "Fair", "Good", "Great", "Loved it"];
+  var LOG_KEY = "niat.feedback." + nfbConfig.game;
+  var QUEUE_KEY = "niat.feedback.queue." + nfbConfig.game;
+
+  var fab = document.getElementById("nfbFab");
+  var back = document.getElementById("nfbBack");
+  var form = document.getElementById("nfbForm");
+  var done = document.getElementById("nfbDone");
+  var starBox = document.getElementById("nfbStars");
+  var slab = document.getElementById("nfbSlab");
+  var err = document.getElementById("nfbErr");
+  var text = document.getElementById("nfbText");
+  var change = document.getElementById("nfbChange");
+  if (!fab || !back) return;
+
+  var rating = 0;
+  var lastFocus = null;
+
+  /* ---- star rating: five radios, clickable and arrow-key navigable ---- */
+  var stars = [];
+  for (var i = 1; i <= 5; i++) {
+    var s = document.createElement("button");
+    s.type = "button";
+    s.className = "nfb-star";
+    s.textContent = "★";
+    s.setAttribute("role", "radio");
+    s.setAttribute("aria-checked", "false");
+    s.setAttribute("aria-label", i + (i === 1 ? " star" : " stars"));
+    s.tabIndex = i === 1 ? 0 : -1;
+    s.setAttribute("data-v", String(i));
+    starBox.appendChild(s);
+    stars.push(s);
+  }
+
+  function setRating(v) {
+    rating = v;
+    stars.forEach(function (s, idx) {
+      s.classList.toggle("on", idx < v);
+      s.setAttribute("aria-checked", idx + 1 === v ? "true" : "false");
+      s.tabIndex = idx + 1 === (v || 1) ? 0 : -1;
+    });
+    slab.textContent = v ? LABELS[v] : "Pick a star";
+    if (v) hideError();
+  }
+
+  starBox.addEventListener("click", function (e) {
+    var s = e.target.closest(".nfb-star");
+    if (s) setRating(Number(s.getAttribute("data-v")));
+  });
+  starBox.addEventListener("keydown", function (e) {
+    var step = e.key === "ArrowRight" || e.key === "ArrowUp" ? 1
+      : e.key === "ArrowLeft" || e.key === "ArrowDown" ? -1 : 0;
+    if (!step) return;
+    e.preventDefault();
+    var next = Math.min(5, Math.max(1, (rating || 0) + step));
+    setRating(next);
+    stars[next - 1].focus();
+  });
+
+  function showError(msg) { err.textContent = msg; err.hidden = false; }
+  function hideError() { err.hidden = true; }
+
+  /* ---- open / close ---- */
+  function openBox() {
+    lastFocus = document.activeElement;
+    back.hidden = false;
+    document.addEventListener("keydown", onKey, true);
+    stars[rating ? rating - 1 : 0].focus();
+  }
+  function closeBox() {
+    back.hidden = true;
+    document.removeEventListener("keydown", onKey, true);
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  function onKey(e) {
+    if (e.key === "Escape") { e.stopPropagation(); closeBox(); }
+  }
+
+  fab.addEventListener("click", openBox);
+  document.getElementById("nfbClose").addEventListener("click", closeBox);
+  document.getElementById("nfbCancel").addEventListener("click", closeBox);
+  document.getElementById("nfbBackToGame").addEventListener("click", closeBox);
+  back.addEventListener("mousedown", function (e) { if (e.target === back) closeBox(); });
+
+  /* ---- storage: reads and writes both throw in private mode ---- */
+  function read(key) {
+    try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch (e) { return []; }
+  }
+  function write(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* full or blocked */ }
+  }
+
+  function configured() {
+    return !!(nfbConfig.action && nfbConfig.rating && nfbConfig.feedback && nfbConfig.change);
+  }
+
+  /* A cross-origin POST into a hidden iframe: no CORS to satisfy, and it
+     works from file:// too, which is how these games are usually opened. */
+  function post(entry) {
+    var f = document.createElement("form");
+    f.method = "POST";
+    f.action = nfbConfig.action;
+    f.target = "nfb-sink";
+    f.style.display = "none";
+    [[nfbConfig.rating, entry.rating],
+     [nfbConfig.feedback, entry.feedback],
+     [nfbConfig.change, entry.change]].forEach(function (pair) {
+      var input = document.createElement("input");
+      input.type = "hidden";
+      input.name = pair[0];
+      input.value = pair[1];
+      f.appendChild(input);
+    });
+    document.body.appendChild(f);
+    f.submit();
+    setTimeout(function () { f.remove(); }, 4000);
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!rating) { showError("Pick a star rating first."); stars[0].focus(); return; }
+
+    var entry = {
+      game: nfbConfig.game,
+      rating: String(rating),
+      feedback: text.value.trim(),
+      change: change.value.trim(),
+      at: new Date().toISOString()
+    };
+
+    var log = read(LOG_KEY);
+    log.push(entry);
+    write(LOG_KEY, log);
+
+    if (configured()) {
+      post(entry);
+    } else {
+      var queue = read(QUEUE_KEY);
+      queue.push(entry);
+      write(QUEUE_KEY, queue);
+      console.warn("[feedback] No Google Form wired up yet - answer kept in localStorage under \"" +
+        QUEUE_KEY + "\" and sent once nfbConfig is filled in.");
+    }
+
+    form.hidden = true;
+    done.hidden = false;
+    document.getElementById("nfbBackToGame").focus();
+
+    setRating(0);
+    text.value = "";
+    change.value = "";
+    setTimeout(function () {
+      closeBox();
+      form.hidden = false;
+      done.hidden = true;
+      hideError();
+    }, 2600);
+  });
+
+  /* Anything captured before the form was wired up goes out on the next load. */
+  if (configured()) {
+    var pending = read(QUEUE_KEY);
+    if (pending.length) {
+      write(QUEUE_KEY, []);
+      pending.forEach(function (entry, idx) {
+        setTimeout(function () { post(entry); }, idx * 600);
+      });
+    }
+  }
+})();
+</script>
+
+</body>
+</html>

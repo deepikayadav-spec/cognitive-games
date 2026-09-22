@@ -1,0 +1,80 @@
+/* Shared chrome for the cognitive ability games: top bar, overlays, buttons.
+   Each game supplies its own board styling on top of this. */
+:root{
+  --navy:#12283F; --navy-2:#0E2439; --slate:#4A5A6B; --slate-2:#5E6E7E;
+  --paper:#EAEAEA; --ink:#1B2430; --muted:#6C7885; --line:#D6DAE0;
+  --orange:#F5921E; --red:#B00020; --green:#0B8A0B;
+  --shape-a:#2E7D32; --shape-b:#9C27B0; --shape-c:#1A3E8C; --shape-d:#D84315;
+  --ff:'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%; margin:0}
+body{background:#DDDDDD; color:var(--ink); font-family:var(--ff); overflow:hidden}
+button{font-family:inherit; cursor:pointer}
+
+.stage{height:100%; display:flex; flex-direction:column;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px)}
+
+/* ---------- top bar ---------- */
+.bar{display:flex; align-items:center; gap:10px; background:var(--navy); padding:8px 12px; flex:none}
+.bar .ic{width:44px; height:34px; border:0; border-radius:5px; background:var(--slate); color:#fff;
+  font-size:15px; display:grid; place-items:center; line-height:1}
+.bar .ic:hover{background:var(--slate-2)}
+.bar .lvl{background:var(--slate); color:#fff; font-weight:600; font-size:15px;
+  padding:7px 16px; border-radius:5px; white-space:nowrap}
+.scorebar{flex:1 1 auto; min-width:60px; height:34px; border-radius:17px; background:#fff;
+  position:relative; overflow:hidden; display:grid; place-items:center}
+.scorebar .fill{position:absolute; inset:0; width:0; background:var(--orange); transition:width .3s}
+.scorebar .v{position:relative; font-weight:700; font-size:16px; color:var(--red)}
+.clock{background:var(--slate); color:#fff; font-weight:700; font-size:16px; padding:7px 14px;
+  border-radius:5px; font-variant-numeric:tabular-nums; min-width:84px; text-align:center}
+.bar .name{color:#fff; font-weight:700; font-size:17px; white-space:nowrap}
+@media (max-width:760px){ .bar .name{display:none} .bar .lvl{padding:7px 10px; font-size:13px} }
+
+/* session strip: how much of the four minutes is gone */
+.session{flex:none; height:4px; background:#C9CDD3}
+.session i{display:block; height:100%; width:100%; background:var(--navy-2);
+  transform-origin:left center}
+
+.prompt{flex:none; text-align:center; font-weight:700; font-size:clamp(16px,2.4vw,26px);
+  padding:10px 16px 6px}
+.board{flex:1 1 auto; margin:6px 16px 16px; position:relative; min-height:0;
+  display:flex; align-items:center; justify-content:center; overflow:auto}
+
+/* ---------- shared pieces ---------- */
+.tile{background:#fff; border:1px solid var(--line); display:grid; place-items:center}
+.flash{position:absolute; left:50%; top:14%; transform:translate(-50%,-50%);
+  font-size:clamp(24px,4.6vw,40px); font-weight:700; pointer-events:none; opacity:0;
+  transition:opacity .2s, transform .2s; z-index:5}
+.flash.on{opacity:1; transform:translate(-50%,-50%) scale(1.08)}
+.flash.good{color:var(--green)} .flash.bad{color:var(--red)}
+
+/* ---------- overlays ---------- */
+.overlay{position:fixed; inset:0; z-index:20; display:grid; place-items:center; padding:18px;
+  background:rgba(20,26,34,.72); overflow:auto}
+.overlay[hidden]{display:none}
+.sheet{width:min(920px,100%); background:#4A4A4A; color:#fff; border-radius:4px; padding:26px 28px;
+  display:flex; flex-direction:column; gap:13px}
+.sheet h1{margin:0; text-align:center; color:var(--orange);
+  font-size:clamp(27px,5vw,42px); font-weight:700}
+.sheet .sub{align-self:center; background:#fff; color:var(--ink); font-weight:700;
+  border-radius:4px; padding:5px 16px; font-size:clamp(13px,2vw,17px); text-align:center}
+.sheet p{margin:0; font-size:clamp(14px,1.85vw,18px); line-height:1.5}
+.sheet h2{margin:6px 0 0; text-align:center; color:var(--orange); font-size:clamp(20px,3.4vw,29px)}
+.sheet ul{margin:0; padding-left:20px; display:flex; flex-direction:column; gap:5px;
+  font-size:clamp(13.5px,1.8vw,17px)}
+.play{align-self:center; background:var(--orange); color:#fff; border:0; border-radius:4px;
+  font-size:clamp(18px,2.6vw,25px); font-weight:600; padding:11px 62px; margin-top:6px}
+.play:hover{filter:brightness(1.06)}
+.ghost{align-self:center; background:transparent; border:1px solid rgba(255,255,255,.4);
+  color:#fff; border-radius:4px; padding:9px 26px; font-size:15px}
+.ghost:hover{background:rgba(255,255,255,.08)}
+.results{display:flex; flex-direction:column}
+.results div{display:flex; justify-content:space-between; padding:9px 2px;
+  border-bottom:1px solid rgba(255,255,255,.16); font-size:15.5px}
+.results div:last-child{border-bottom:0}
+.results b{font-weight:700}
+.backlink{position:fixed; left:12px; bottom:12px; z-index:9; background:rgba(18,40,63,.9);
+  color:#fff; text-decoration:none; font-size:12.5px; font-weight:600; padding:7px 13px;
+  border-radius:999px}
+.backlink:hover{background:var(--navy)}

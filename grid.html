@@ -1,0 +1,919 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Grid Challenge</title>
+<meta name="description" content="Power of attention and memory — hold three dot positions while answering symmetry questions in between, then recall them in order.">
+<meta name="theme-color" content="#12283F">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%9F%A0</text></svg>">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
+<style>
+:root{
+  --navy:#12283F; --navy-2:#0E2439; --slate:#4A5A6B; --slate-2:#5E6E7E;
+  --paper:#E8E8E8; --paper-2:#F4F4F4; --ink:#1B2430; --muted:#6C7885;
+  --orange:#F5921E; --red:#B00020; --green:#0B8A0B;
+  --dot:#A8AAB6; --cell:#5A5A5A;
+  --ff:'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%; margin:0}
+body{background:#DDDDDD; color:var(--ink); font-family:var(--ff); overflow:hidden}
+button{font-family:inherit; cursor:pointer}
+
+.stage{height:100%; display:flex; flex-direction:column;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px)}
+
+/* ---------- top bar ---------- */
+.bar{display:flex; align-items:center; gap:10px; background:var(--navy); padding:8px 12px; flex:none}
+.bar .ic{width:44px; height:34px; border:0; border-radius:5px; background:var(--slate); color:#fff;
+  font-size:15px; display:grid; place-items:center; line-height:1}
+.bar .ic:hover{background:var(--slate-2)}
+.bar .lvl{background:var(--slate); color:#fff; font-weight:600; font-size:15px;
+  padding:7px 16px; border-radius:5px; white-space:nowrap}
+.scorebar{flex:1 1 auto; min-width:60px; height:34px; border-radius:17px; background:#fff;
+  position:relative; overflow:hidden; display:grid; place-items:center}
+.scorebar .fill{position:absolute; inset:0; width:0; background:var(--orange); transition:width .3s}
+.scorebar .v{position:relative; font-weight:700; font-size:16px; color:var(--red)}
+.scorebar .v.pos{color:var(--red)}
+.clock{background:var(--slate); color:#fff; font-weight:700; font-size:16px; padding:7px 14px;
+  border-radius:5px; font-variant-numeric:tabular-nums}
+.bar .name{color:#fff; font-weight:700; font-size:17px; white-space:nowrap}
+@media (max-width:720px){ .bar .name{display:none} .bar .lvl{padding:7px 10px; font-size:13px} }
+
+/* ---------- prompt line ---------- */
+.prompt{flex:none; text-align:right; font-weight:700; font-size:clamp(16px,2.4vw,26px);
+  padding:8px 16px 4px}
+.timerbar{flex:none; height:9px; background:#D2D2D2; margin:0 16px; border-radius:2px; overflow:hidden}
+.timerbar i{display:block; height:100%; width:100%; background:var(--slate);
+  transform-origin:left center}
+
+/* ---------- play area ---------- */
+.field{flex:1 1 auto; margin:12px 16px 16px; background:var(--paper); border-radius:3px;
+  position:relative; overflow:hidden; min-height:0}
+
+.dot{position:absolute; border-radius:50%; background:var(--dot);
+  box-shadow:0 2px 3px rgba(0,0,0,.18); transform:translate(-50%,-50%);
+  transition:background .12s, transform .12s}
+.dot.lit{background:var(--green)}
+.dot.pick{background:var(--navy)}
+.dot.right{background:var(--green)}
+.dot.wrong{background:var(--red)}
+.dot.click{cursor:pointer}
+.dot.click:hover{transform:translate(-50%,-50%) scale(1.12)}
+.dot .seq{position:absolute; inset:0; display:grid; place-items:center; color:#fff;
+  font-weight:700; font-size:14px}
+
+/* symmetry round */
+.sym{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:26px; padding:16px}
+.sym h2{margin:0; font-weight:600; font-size:clamp(17px,2.6vw,26px); color:#2B3440}
+.pair{display:flex; gap:22px; align-items:center; justify-content:center; flex-wrap:wrap}
+.pat{background:#fff; padding:14px; display:grid; gap:9px}
+.pat span{display:grid; place-items:center}
+.pat i{display:block; background:var(--cell)}
+.pat i.on{width:22px; height:22px}
+.pat i.off{width:7px; height:7px; border-radius:50%}
+@media (max-width:620px){ .pat i.on{width:15px;height:15px} .pat{gap:6px; padding:10px} }
+
+.answers{display:flex; gap:26px}
+.answers button{background:var(--navy-2); color:#fff; border:0; border-radius:9px;
+  font-size:clamp(18px,2.6vw,26px); font-weight:400; padding:12px 44px;
+  box-shadow:0 5px 0 #071726}
+.answers button:hover{background:#16314d}
+.answers button:active{transform:translateY(3px); box-shadow:0 2px 0 #071726}
+
+/* ---------- overlays ---------- */
+.overlay{position:fixed; inset:0; z-index:20; display:grid; place-items:center; padding:18px;
+  background:rgba(20,26,34,.72); overflow:auto}
+.overlay[hidden]{display:none}
+.sheet{width:min(920px,100%); background:#4A4A4A; color:#fff; border-radius:4px; padding:26px 28px;
+  display:flex; flex-direction:column; gap:14px}
+.sheet h1{margin:0; text-align:center; color:var(--orange); font-size:clamp(28px,5vw,42px); font-weight:700}
+.sheet .sub{align-self:center; background:#fff; color:var(--ink); font-weight:700;
+  border-radius:4px; padding:5px 16px; font-size:clamp(13px,2vw,17px)}
+.sheet p{margin:0; font-size:clamp(14px,1.9vw,18.5px); line-height:1.5}
+.sheet h2{margin:8px 0 0; text-align:center; color:var(--orange); font-size:clamp(21px,3.4vw,30px)}
+.sheet ul{margin:0; padding-left:20px; display:flex; flex-direction:column; gap:5px;
+  font-size:clamp(13.5px,1.8vw,17px)}
+.play{align-self:center; background:var(--orange); color:#fff; border:0; border-radius:4px;
+  font-size:clamp(18px,2.6vw,25px); font-weight:600; padding:11px 62px; margin-top:6px}
+.play:hover{filter:brightness(1.06)}
+.results{display:flex; flex-direction:column; gap:0}
+.results div{display:flex; justify-content:space-between; padding:9px 2px;
+  border-bottom:1px solid rgba(255,255,255,.16); font-size:15.5px}
+.results div:last-child{border-bottom:0}
+.results b{font-weight:700}
+.ghost{align-self:center; background:transparent; border:1px solid rgba(255,255,255,.4);
+  color:#fff; border-radius:4px; padding:9px 26px; font-size:15px}
+
+.backlink{position:fixed; left:12px; bottom:12px; z-index:9; background:rgba(18,40,63,.9);
+  color:#fff; text-decoration:none; font-size:12.5px; font-weight:600; padding:7px 13px;
+  border-radius:999px}
+.backlink:hover{background:var(--navy)}
+
+/* feedback flash over the field */
+.flash{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  font-size:clamp(26px,5vw,44px); font-weight:700; pointer-events:none; opacity:0;
+  transition:opacity .2s, transform .2s}
+.flash.on{opacity:1; transform:translate(-50%,-50%) scale(1.08)}
+.flash.good{color:var(--green)} .flash.bad{color:var(--red)}
+
+/* ---------- feedback widget ---------- */
+.nfb-fab,.nfb-back{
+  --nfb-surface:#FFFFFF; --nfb-line:#D6DAE0; --nfb-text:var(--ink); --nfb-dim:var(--muted);
+  --nfb-accent:var(--orange); --nfb-accent-ink:#FFFFFF; --nfb-star:var(--orange);
+  --nfb-radius:8px; --nfb-font:'Poppins',system-ui,sans-serif; --nfb-head:'Poppins',system-ui,sans-serif;
+}
+.nfb-fab{
+  position:fixed;right:16px;bottom:18px;z-index:9990;
+  display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+  font-family:var(--nfb-head);font-size:13px;font-weight:700;line-height:1;
+  padding:11px 16px;border:1px solid var(--nfb-accent);border-radius:999px;
+  color:var(--nfb-accent-ink);background:var(--nfb-accent);
+  box-shadow:0 8px 24px rgba(0,0,0,.34);
+}
+.nfb-fab:hover{filter:brightness(1.08)}
+.nfb-fab:active{transform:translateY(1px)}
+.nfb-fab svg{width:15px;height:15px;flex:none}
+@media (max-width:560px){
+  .nfb-fab b{display:none}
+  .nfb-fab{padding:13px;border-radius:50%;right:12px}
+}
+
+.nfb-back{
+  position:fixed;inset:0;z-index:9991;display:grid;place-items:center;padding:16px;
+  background:rgba(3,7,12,.66);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+  font-family:var(--nfb-font);color:var(--nfb-text);overflow:auto;
+}
+.nfb-back[hidden]{display:none}
+.nfb-card{
+  position:relative;width:min(470px,100%);max-height:calc(100vh - 32px);overflow:auto;
+  background:var(--nfb-surface);border:1px solid var(--nfb-line);
+  border-radius:var(--nfb-radius);padding:20px 20px 18px;
+  box-shadow:0 26px 64px rgba(0,0,0,.46);
+}
+.nfb-card h2{
+  font-family:var(--nfb-head);font-size:19px;font-weight:800;margin:0 0 4px;
+  color:var(--nfb-text);
+}
+.nfb-card p.nfb-sub{margin:0 0 16px;font-size:13.5px;color:var(--nfb-dim);line-height:1.45}
+.nfb-x{
+  position:absolute;top:12px;right:12px;width:30px;height:30px;cursor:pointer;
+  display:grid;place-items:center;font-size:19px;line-height:1;
+  color:var(--nfb-dim);background:none;border:1px solid var(--nfb-line);border-radius:8px;
+}
+.nfb-x:hover{color:var(--nfb-text)}
+.nfb-f{display:block;border:0;padding:0;margin:0 0 15px;min-width:0}
+.nfb-f > span,.nfb-f > legend{
+  display:block;font-size:12.5px;font-weight:700;margin:0 0 7px;padding:0;
+  color:var(--nfb-text);font-family:var(--nfb-head);
+}
+.nfb-f textarea{
+  width:100%;resize:vertical;font:inherit;font-size:14px;line-height:1.5;
+  padding:10px 12px;border-radius:calc(var(--nfb-radius) / 1.6);
+  color:var(--nfb-text);background:transparent;border:1px solid var(--nfb-line);
+}
+.nfb-f textarea::placeholder{color:var(--nfb-dim);opacity:.85}
+.nfb-f textarea:focus{outline:2px solid var(--nfb-accent);outline-offset:1px;border-color:transparent}
+.nfb-stars{display:flex;align-items:center;gap:2px}
+.nfb-star{
+  cursor:pointer;background:none;border:0;padding:2px 3px;line-height:1;
+  font-size:28px;color:var(--nfb-dim);opacity:.5;transition:transform .12s ease;
+}
+.nfb-star.on{color:var(--nfb-star);opacity:1}
+.nfb-star:hover{transform:scale(1.14)}
+.nfb-star:focus-visible{outline:2px solid var(--nfb-accent);outline-offset:2px;border-radius:6px}
+.nfb-slab{margin-left:8px;font-size:12.5px;font-weight:600;color:var(--nfb-dim)}
+.nfb-err{margin:0 0 12px;font-size:12.5px;font-weight:600;color:var(--red)}
+.nfb-err[hidden]{display:none}
+.nfb-act{display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap}
+.nfb-act button{
+  cursor:pointer;font-family:var(--nfb-head);font-size:13px;font-weight:700;
+  padding:10px 17px;border-radius:calc(var(--nfb-radius) / 1.4);border:1px solid var(--nfb-line);
+  background:transparent;color:var(--nfb-dim);
+}
+.nfb-act button:hover{color:var(--nfb-text)}
+.nfb-act .nfb-send{
+  color:var(--nfb-accent-ink);background:var(--nfb-accent);border-color:var(--nfb-accent);
+}
+.nfb-act .nfb-send:hover{filter:brightness(1.08);color:var(--nfb-accent-ink)}
+.nfb-done{text-align:center;padding:14px 4px 6px}
+.nfb-done[hidden]{display:none}
+.nfb-done .nfb-tick{font-size:40px;line-height:1;color:var(--nfb-accent)}
+.nfb-done h3{font-family:var(--nfb-head);font-size:17px;margin:10px 0 6px;}
+.nfb-done p{margin:0 0 16px;font-size:13.5px;color:var(--nfb-dim)}
+@media (prefers-reduced-motion:reduce){
+  .nfb-star,.nfb-fab{transition:none}
+  .nfb-star:hover{transform:none}
+}
+</style>
+</head>
+<body>
+
+<a class="backlink" href="index.html">← All games</a>
+
+<div class="stage">
+  <div class="bar">
+    <button class="ic" id="btnPause" title="Pause">❚❚</button>
+    <button class="ic" id="btnSound" title="Sound">🔊</button>
+    <div class="lvl" id="lvl">Level 1</div>
+    <div class="scorebar"><div class="fill" id="scoreFill"></div><span class="v" id="score">0</span></div>
+    <div class="clock" id="clock">04:00</div>
+    <div class="name">Grid Challenge</div>
+  </div>
+
+  <div class="prompt" id="prompt">Remember the highlighted Dot Sequence</div>
+  <div class="timerbar"><i id="timerFill"></i></div>
+
+  <div class="field" id="field">
+    <div class="flash" id="flash"></div>
+  </div>
+</div>
+
+<!-- ---------- instructions ---------- -->
+<div class="overlay" id="introScreen">
+  <div class="sheet">
+    <h1>Grid Challenge</h1>
+    <div class="sub">Power of Attention, Memory</div>
+    <p>Firstly you will be shown a number of circles scrambled at different positions and one of the
+      circles blinks. You have to remember the position of the circle which blinks. Then you will be
+      shown two patterns with grids arranged randomly. You have to find whether the given two
+      patterns are symmetric or not. This will repeat for three times. In these three turns you must
+      remember the three different positions of circles and also answer whether the given two
+      patterns are symmetric or not. Then you will be again shown the number of circles scrambled at
+      different positions. Now you have to mark the three circles which you were asked to remember
+      in the same order you were shown.</p>
+    <h2>How to Play</h2>
+    <ul>
+      <li>Correct answer will add the score by 3 points.</li>
+      <li>Wrong answer will subtract the score by 1 point.</li>
+      <li>Highlighted circle appears only 2 sec.</li>
+      <li>The two patterns appear for 6 seconds.</li>
+    </ul>
+    <button class="play" id="btnPlay">Play</button>
+  </div>
+</div>
+
+<!-- ---------- pause ---------- -->
+<div class="overlay" id="pauseScreen" hidden>
+  <div class="sheet" style="width:min(420px,100%)">
+    <h1 style="font-size:32px">Paused</h1>
+    <div class="results">
+      <div><span>Score</span><b id="pScore">0</b></div>
+      <div><span>Level</span><b id="pLevel">1</b></div>
+      <div><span>Time left</span><b id="pTime">04:00</b></div>
+    </div>
+    <button class="play" id="btnResume">Resume</button>
+    <button class="ghost" id="btnQuit">Restart</button>
+  </div>
+</div>
+
+<!-- ---------- results ---------- -->
+<div class="overlay" id="endScreen" hidden>
+  <div class="sheet" style="width:min(460px,100%)">
+    <h1 style="font-size:34px">Time up</h1>
+    <div class="sub" id="endVerdict">Final score</div>
+    <div class="results">
+      <div><span>Score</span><b id="eScore">0</b></div>
+      <div><span>Levels completed</span><b id="eLevels">0</b></div>
+      <div><span>Symmetry answers</span><b id="eSym">0 / 0</b></div>
+      <div><span>Dots recalled</span><b id="eDots">0 / 0</b></div>
+    </div>
+    <button class="play" id="btnAgain">Play again</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* =======================================================================
+     A level is three rounds of (memorise one dot for 2s -> answer a
+     symmetry question in 6s), then one recall round where the three dots
+     must be clicked back in the order they were shown. Correct +3,
+     wrong -1, and a 4 minute clock runs across the whole session.
+     ======================================================================= */
+  var MEMO_MS = 2000, SYM_MS = 6000, ROUNDS = 3, SESSION_S = 240;
+  var GRID = 5;                       // the symmetry patterns are 5 x 5
+  var DOT_BASE = 24;                  // dots on the field at level 1
+
+  var field = document.getElementById('field');
+  var promptEl = document.getElementById('prompt');
+  var timerFill = document.getElementById('timerFill');
+  var flashEl = document.getElementById('flash');
+
+  var S = null, tickTimer = null, phaseTimer = null, rafId = 0;
+
+  /* ---------------- sound: three short blips, no assets ---------------- */
+  var actx = null, muted = false;
+  function beep(freq, ms, type){
+    if (muted) return;
+    try {
+      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      var o = actx.createOscillator(), g = actx.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.06, actx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + ms / 1000);
+      o.connect(g); g.connect(actx.destination);
+      o.start(); o.stop(actx.currentTime + ms / 1000);
+    } catch (e) { /* audio blocked; the game does not need it */ }
+  }
+
+  /* ---------------- helpers ---------------- */
+  function el(tag, cls){ var e = document.createElement(tag); if (cls) e.className = cls; return e; }
+  function clearField(){
+    var keep = flashEl;
+    field.innerHTML = '';
+    field.appendChild(keep);
+  }
+  function fmt(s){
+    var m = Math.floor(s / 60), r = Math.floor(s % 60);
+    return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r;
+  }
+  function flash(text, good){
+    flashEl.textContent = text;
+    flashEl.className = 'flash on ' + (good ? 'good' : 'bad');
+    setTimeout(function (){ flashEl.className = 'flash ' + (good ? 'good' : 'bad'); }, 520);
+  }
+
+  /* ---------------- dot field ---------------- */
+  function layoutDots(count){
+    /* Jittered grid rather than pure random: pure random clumps in one corner
+       and leaves half the field bare, which is not what the real game looks
+       like. Each dot owns a cell and moves freely inside it. */
+    var w = field.clientWidth, h = field.clientHeight;
+    var r = Math.max(14, Math.min(26, Math.round(Math.min(w, h) / 22)));
+    var pad = r + 10;
+    var iw = w - pad * 2, ih = h - pad * 2;
+    var cols = Math.max(1, Math.round(Math.sqrt(count * iw / Math.max(1, ih))));
+    var rows = Math.ceil(count / cols);
+    var cw = iw / cols, ch = ih / rows;
+
+    var slots = [];
+    for (var y = 0; y < rows; y++)
+      for (var x = 0; x < cols; x++) slots.push([x, y]);
+    // drop the surplus cells at random so the gaps are not all in the last row
+    while (slots.length > count) slots.splice((Math.random() * slots.length) | 0, 1);
+
+    var jx = Math.max(0, cw / 2 - r), jy = Math.max(0, ch / 2 - r);
+    return slots.map(function (s){
+      return {
+        x: pad + s[0] * cw + cw / 2 + (Math.random() * 2 - 1) * jx,
+        y: pad + s[1] * ch + ch / 2 + (Math.random() * 2 - 1) * jy,
+        r: r
+      };
+    });
+  }
+  function drawDots(dots, clickable, onPick){
+    clearField();
+    dots.forEach(function (d, i){
+      var e = el('div', 'dot' + (clickable ? ' click' : ''));
+      e.style.left = d.x + 'px'; e.style.top = d.y + 'px';
+      e.style.width = d.r * 2 + 'px'; e.style.height = d.r * 2 + 'px';
+      if (clickable) e.addEventListener('click', function (){ onPick(i, e); });
+      d.el = e;
+      field.appendChild(e);
+    });
+  }
+
+  /* ---------------- symmetry patterns ---------------- */
+  /* Each question shows a left pattern and a right pattern built from it by
+     a transform. Half the time a couple of cells are flipped, which is what
+     makes the answer "no". */
+  var QUESTIONS = [
+    {text:'Mirror image?',        fn: mirrorH},
+    {text:'Rotated but identical?', fn: rot180},
+    {text:'Is it symmetric?',     fn: mirrorV}
+  ];
+  function mirrorH(g){                      // flip left-right
+    return g.map(function (row){ return row.slice().reverse(); });
+  }
+  function mirrorV(g){                      // flip top-bottom
+    return g.slice().reverse().map(function (row){ return row.slice(); });
+  }
+  function rot180(g){
+    return g.slice().reverse().map(function (row){ return row.slice().reverse(); });
+  }
+  function makePattern(){
+    var g = [], r, c;
+    for (r = 0; r < GRID; r++){
+      g[r] = [];
+      for (c = 0; c < GRID; c++) g[r][c] = Math.random() < 0.55 ? 1 : 0;
+    }
+    // a border of filled cells, like the real game, so the shapes read clearly
+    for (c = 0; c < GRID; c++){ g[0][c] = 1; g[GRID - 1][c] = 1; }
+    for (r = 0; r < GRID; r++){ g[r][0] = 1; g[r][GRID - 1] = 1; }
+    return g;
+  }
+  function newQuestion(){
+    var q = QUESTIONS[(Math.random() * QUESTIONS.length) | 0];
+    var left = makePattern();
+    var right = q.fn(left);
+    var answer = true;
+    if (Math.random() < 0.5){                 // break it in one or two places
+      answer = false;
+      var flips = 1 + ((Math.random() * 2) | 0);
+      for (var i = 0; i < flips; i++){
+        var r = 1 + ((Math.random() * (GRID - 2)) | 0);
+        var c = 1 + ((Math.random() * (GRID - 2)) | 0);
+        right[r][c] = right[r][c] ? 0 : 1;
+      }
+      // a flip can land on a cell that was already equal both ways, so verify
+      if (same(right, q.fn(left))) answer = true;
+    }
+    return {text:q.text, left:left, right:right, answer:answer};
+  }
+  function same(a, b){
+    for (var r = 0; r < GRID; r++)
+      for (var c = 0; c < GRID; c++)
+        if (a[r][c] !== b[r][c]) return false;
+    return true;
+  }
+  function patternEl(g){
+    var box = el('div', 'pat');
+    box.style.gridTemplateColumns = 'repeat(' + GRID + ',auto)';
+    for (var r = 0; r < GRID; r++){
+      for (var c = 0; c < GRID; c++){
+        var cell = el('span');
+        cell.appendChild(el('i', g[r][c] ? 'on' : 'off'));
+        box.appendChild(cell);
+      }
+    }
+    return box;
+  }
+
+  /* ---------------- scoring ---------------- */
+  function addScore(n){
+    S.score += n;
+    document.getElementById('score').textContent = S.score;
+    var pct = Math.max(0, Math.min(100, (S.score / 60) * 100));
+    document.getElementById('scoreFill').style.width = pct + '%';
+  }
+
+  /* ---------------- phases ---------------- */
+  function setPrompt(text){ promptEl.textContent = text; }
+  function runBar(ms){
+    timerFill.style.transition = 'none';
+    timerFill.style.transform = 'scaleX(1)';
+    // force a reflow so the transition starts from full width
+    void timerFill.offsetWidth;
+    timerFill.style.transition = 'transform ' + ms + 'ms linear';
+    timerFill.style.transform = 'scaleX(0)';
+  }
+  function stopBar(){
+    timerFill.style.transition = 'none';
+    timerFill.style.transform = 'scaleX(0)';
+  }
+
+  function startLevel(){
+    S.round = 0;
+    S.targets = [];
+    S.dots = layoutDots(DOT_BASE + (S.level - 1) * 2);
+    // choose the three dots this level will ask for
+    var pool = [];
+    for (var i = 0; i < S.dots.length; i++) pool.push(i);
+    for (var j = 0; j < ROUNDS; j++){
+      S.targets.push(pool.splice((Math.random() * pool.length) | 0, 1)[0]);
+    }
+    document.getElementById('lvl').textContent = 'Level ' + S.level;
+    memorise();
+  }
+
+  function memorise(){
+    S.phase = 'memorise';
+    setPrompt('Remember the highlighted Dot Sequence');
+    drawDots(S.dots, false);
+    var target = S.dots[S.targets[S.round]];
+    target.el.classList.add('lit');
+    beep(660, 120);
+    runBar(MEMO_MS);
+    phaseTimer = setTimeout(function (){
+      target.el.classList.remove('lit');
+      symmetry();
+    }, MEMO_MS);
+  }
+
+  function symmetry(){
+    S.phase = 'symmetry';
+    setPrompt('Is it Symmetric..?');
+    var q = newQuestion();
+    clearField();
+
+    var wrap = el('div', 'sym');
+    var title = el('h2'); title.textContent = q.text;
+    var pair = el('div', 'pair');
+    pair.appendChild(patternEl(q.left));
+    pair.appendChild(patternEl(q.right));
+    var ans = el('div', 'answers');
+
+    var answered = false;
+    function respond(said){
+      if (answered) return;
+      answered = true;
+      clearTimeout(phaseTimer);
+      stopBar();
+      S.symAsked++;
+      if (said === q.answer){ S.symRight++; addScore(3); flash('+3', true); beep(880, 140); }
+      else { addScore(-1); flash('−1', false); beep(220, 200, 'square'); }
+      setTimeout(nextRound, 620);
+    }
+
+    ['yes', 'no'].forEach(function (label){
+      var b = el('button');
+      b.textContent = label;
+      b.addEventListener('click', function (){ respond(label === 'yes'); });
+      ans.appendChild(b);
+    });
+
+    wrap.appendChild(title); wrap.appendChild(pair); wrap.appendChild(ans);
+    field.appendChild(wrap);
+
+    runBar(SYM_MS);
+    phaseTimer = setTimeout(function (){
+      if (answered) return;
+      answered = true;
+      S.symAsked++;
+      addScore(-1);
+      flash('Too slow', false);
+      beep(200, 240, 'square');
+      setTimeout(nextRound, 620);
+    }, SYM_MS);
+  }
+
+  function nextRound(){
+    S.round++;
+    if (S.round < ROUNDS) memorise();
+    else recall();
+  }
+
+  function recall(){
+    S.phase = 'recall';
+    setPrompt('Click the dots in correct sequence');
+    stopBar();
+    var picked = 0;
+    drawDots(S.dots, true, function (index, node){
+      if (node.classList.contains('right') || node.classList.contains('wrong')) return;
+      var wanted = S.targets[picked];
+      S.dotsAsked++;
+      if (index === wanted){
+        S.dotsRight++;
+        node.classList.add('right');
+        addScore(3); beep(880, 130);
+      } else {
+        node.classList.add('wrong');
+        addScore(-1); beep(220, 200, 'square');
+        // show where it should have been
+        var should = S.dots[wanted].el;
+        should.classList.add('right');
+      }
+      var tag = el('span', 'seq');
+      tag.textContent = picked + 1;
+      node.appendChild(tag);
+      picked++;
+      if (picked >= ROUNDS){
+        setTimeout(function (){
+          S.level++;
+          S.levelsDone++;
+          if (S.running) startLevel();
+        }, 900);
+      }
+    });
+  }
+
+  /* ---------------- session clock ---------------- */
+  function tick(){
+    if (!S.running || S.paused) return;
+    S.left -= 1;
+    document.getElementById('clock').textContent = fmt(S.left);
+    if (S.left <= 0) finish();
+  }
+
+  function finish(){
+    S.running = false;
+    clearInterval(tickTimer);
+    clearTimeout(phaseTimer);
+    stopBar();
+    document.getElementById('eScore').textContent = S.score;
+    document.getElementById('eLevels').textContent = S.levelsDone;
+    document.getElementById('eSym').textContent = S.symRight + ' / ' + S.symAsked;
+    document.getElementById('eDots').textContent = S.dotsRight + ' / ' + S.dotsAsked;
+    document.getElementById('endVerdict').textContent =
+      S.score >= 45 ? 'Strong working memory' :
+      S.score >= 20 ? 'Solid' :
+      S.score >= 0  ? 'Room to improve' : 'Guessing costs you';
+    show('endScreen', true);
+  }
+
+  /* ---------------- screens ---------------- */
+  function show(id, on){ document.getElementById(id).hidden = !on; }
+
+  function start(){
+    clearInterval(tickTimer); clearTimeout(phaseTimer);
+    S = {
+      level:1, levelsDone:0, round:0, score:0, left:SESSION_S,
+      symAsked:0, symRight:0, dotsAsked:0, dotsRight:0,
+      dots:[], targets:[], phase:'', running:true, paused:false
+    };
+    document.getElementById('score').textContent = '0';
+    document.getElementById('scoreFill').style.width = '0%';
+    document.getElementById('clock').textContent = fmt(SESSION_S);
+    show('introScreen', false); show('endScreen', false); show('pauseScreen', false);
+    tickTimer = setInterval(tick, 1000);
+    startLevel();
+  }
+
+  function togglePause(force){
+    if (!S || !S.running) return;
+    S.paused = force === undefined ? !S.paused : force;
+    if (S.paused){
+      document.getElementById('pScore').textContent = S.score;
+      document.getElementById('pLevel').textContent = S.level;
+      document.getElementById('pTime').textContent = fmt(S.left);
+      // freeze the phase bar where it is
+      var m = getComputedStyle(timerFill).transform;
+      timerFill.style.transition = 'none';
+      timerFill.style.transform = m;
+    }
+    show('pauseScreen', S.paused);
+  }
+
+  document.getElementById('btnPlay').addEventListener('click', start);
+  document.getElementById('btnAgain').addEventListener('click', start);
+  document.getElementById('btnQuit').addEventListener('click', start);
+  document.getElementById('btnResume').addEventListener('click', function (){ togglePause(false); });
+  document.getElementById('btnPause').addEventListener('click', function (){ togglePause(); });
+  document.getElementById('btnSound').addEventListener('click', function (){
+    muted = !muted;
+    this.textContent = muted ? '🔇' : '🔊';
+  });
+  window.addEventListener('keydown', function (e){
+    var t = e.target;
+    if (t && (t.tagName === 'TEXTAREA' || t.tagName === 'INPUT')) return;
+    if (e.key.toLowerCase() === 'p') togglePause();
+  });
+
+  /* a resize changes the field size, so the scatter has to be rebuilt */
+  var resizeTimer = null;
+  window.addEventListener('resize', function (){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function (){
+      if (S && S.running && S.phase !== 'symmetry'){
+        var old = S.dots.length;
+        S.dots = layoutDots(old);
+        if (S.phase === 'recall') recall(); else drawDots(S.dots, false);
+      }
+    }, 250);
+  });
+})();
+</script>
+
+
+<!-- feedback widget: start (shared across the NIAT games; wire nfbConfig below) -->
+<button type="button" class="nfb-fab" id="nfbFab" aria-haspopup="dialog" title="Share feedback">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.3 9.3 0 0 1-3.3-.6L3 21l1.8-4.9A8.1 8.1 0 0 1 3.6 11.5 8.4 8.4 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4Z"></path></svg>
+  <b>Feedback</b>
+</button>
+
+<div class="nfb-back" id="nfbBack" hidden>
+  <div class="nfb-card" role="dialog" aria-modal="true" aria-labelledby="nfbTitle">
+    <button type="button" class="nfb-x" id="nfbClose" aria-label="Close feedback">&times;</button>
+    <h2 id="nfbTitle">Share your feedback</h2>
+    <p class="nfb-sub">Half a minute, three questions. It goes straight to the NIAT team.</p>
+
+    <form id="nfbForm" novalidate>
+      <fieldset class="nfb-f">
+        <legend>1. How would you rate Grid Challenge?</legend>
+        <div class="nfb-stars" id="nfbStars" role="radiogroup" aria-label="Star rating"></div>
+        <span class="nfb-slab" id="nfbSlab">Pick a star</span>
+      </fieldset>
+
+      <label class="nfb-f">
+        <span>2. Additional feedback</span>
+        <textarea id="nfbText" rows="3" placeholder="What worked well, what got in your way&hellip;"></textarea>
+      </label>
+
+      <label class="nfb-f">
+        <span>3. Anything you want to add or change?</span>
+        <textarea id="nfbChange" rows="3" placeholder="A level, a feature, a fix you would like&hellip;"></textarea>
+      </label>
+
+      <p class="nfb-err" id="nfbErr" hidden></p>
+      <div class="nfb-act">
+        <button type="button" id="nfbCancel">Cancel</button>
+        <button type="submit" class="nfb-send" id="nfbSend">Send feedback</button>
+      </div>
+    </form>
+
+    <div class="nfb-done" id="nfbDone" hidden>
+      <div class="nfb-tick">&#10003;</div>
+      <h3>Thanks &mdash; that helps.</h3>
+      <p>Your feedback reached the team.</p>
+      <div class="nfb-act"><button type="button" class="nfb-send" id="nfbBackToGame">Back to Grid Challenge</button></div>
+    </div>
+  </div>
+</div>
+
+<iframe name="nfb-sink" id="nfbSink" title="feedback sink" aria-hidden="true" tabindex="-1"
+  style="position:absolute;left:-9999px;width:0;height:0;border:0"></iframe>
+<!-- feedback widget: end -->
+<script>
+/* ---------- feedback widget ----------
+   Three questions -> a Google Form. Fill nfbConfig in once per game:
+
+     action  the Form's POST URL. Open the live form, copy the address-bar
+             URL and swap the trailing "/viewform" for "/formResponse".
+     rating / feedback / change
+             the three field ids. On the live form use View Source and search
+             for "entry." - each answer box carries an entry.NNNNNNNNN name,
+             in the order the questions appear.
+
+   Until it is filled in, answers are kept in this browser's localStorage
+   (key "niat.feedback.<game>") and posted on the next load once a form is
+   configured, so nothing a student types is lost. */
+(function () {
+  "use strict";
+
+  var nfbConfig = {
+    game: "grid-challenge",
+    action: "",   // https://docs.google.com/forms/d/e/FORM_ID/formResponse
+    rating: "",   // entry.000000000  -> star rating
+    feedback: "", // entry.000000000  -> additional feedback
+    change: ""    // entry.000000000  -> anything to add or change
+  };
+
+  var LABELS = ["", "Poor", "Fair", "Good", "Great", "Loved it"];
+  var LOG_KEY = "niat.feedback." + nfbConfig.game;
+  var QUEUE_KEY = "niat.feedback.queue." + nfbConfig.game;
+
+  var fab = document.getElementById("nfbFab");
+  var back = document.getElementById("nfbBack");
+  var form = document.getElementById("nfbForm");
+  var done = document.getElementById("nfbDone");
+  var starBox = document.getElementById("nfbStars");
+  var slab = document.getElementById("nfbSlab");
+  var err = document.getElementById("nfbErr");
+  var text = document.getElementById("nfbText");
+  var change = document.getElementById("nfbChange");
+  if (!fab || !back) return;
+
+  var rating = 0;
+  var lastFocus = null;
+
+  /* ---- star rating: five radios, clickable and arrow-key navigable ---- */
+  var stars = [];
+  for (var i = 1; i <= 5; i++) {
+    var s = document.createElement("button");
+    s.type = "button";
+    s.className = "nfb-star";
+    s.textContent = "★";
+    s.setAttribute("role", "radio");
+    s.setAttribute("aria-checked", "false");
+    s.setAttribute("aria-label", i + (i === 1 ? " star" : " stars"));
+    s.tabIndex = i === 1 ? 0 : -1;
+    s.setAttribute("data-v", String(i));
+    starBox.appendChild(s);
+    stars.push(s);
+  }
+
+  function setRating(v) {
+    rating = v;
+    stars.forEach(function (s, idx) {
+      s.classList.toggle("on", idx < v);
+      s.setAttribute("aria-checked", idx + 1 === v ? "true" : "false");
+      s.tabIndex = idx + 1 === (v || 1) ? 0 : -1;
+    });
+    slab.textContent = v ? LABELS[v] : "Pick a star";
+    if (v) hideError();
+  }
+
+  starBox.addEventListener("click", function (e) {
+    var s = e.target.closest(".nfb-star");
+    if (s) setRating(Number(s.getAttribute("data-v")));
+  });
+  starBox.addEventListener("keydown", function (e) {
+    var step = e.key === "ArrowRight" || e.key === "ArrowUp" ? 1
+      : e.key === "ArrowLeft" || e.key === "ArrowDown" ? -1 : 0;
+    if (!step) return;
+    e.preventDefault();
+    var next = Math.min(5, Math.max(1, (rating || 0) + step));
+    setRating(next);
+    stars[next - 1].focus();
+  });
+
+  function showError(msg) { err.textContent = msg; err.hidden = false; }
+  function hideError() { err.hidden = true; }
+
+  /* ---- open / close ---- */
+  function openBox() {
+    lastFocus = document.activeElement;
+    back.hidden = false;
+    document.addEventListener("keydown", onKey, true);
+    stars[rating ? rating - 1 : 0].focus();
+  }
+  function closeBox() {
+    back.hidden = true;
+    document.removeEventListener("keydown", onKey, true);
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  function onKey(e) {
+    if (e.key === "Escape") { e.stopPropagation(); closeBox(); }
+  }
+
+  fab.addEventListener("click", openBox);
+  document.getElementById("nfbClose").addEventListener("click", closeBox);
+  document.getElementById("nfbCancel").addEventListener("click", closeBox);
+  document.getElementById("nfbBackToGame").addEventListener("click", closeBox);
+  back.addEventListener("mousedown", function (e) { if (e.target === back) closeBox(); });
+
+  /* ---- storage: reads and writes both throw in private mode ---- */
+  function read(key) {
+    try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch (e) { return []; }
+  }
+  function write(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* full or blocked */ }
+  }
+
+  function configured() {
+    return !!(nfbConfig.action && nfbConfig.rating && nfbConfig.feedback && nfbConfig.change);
+  }
+
+  /* A cross-origin POST into a hidden iframe: no CORS to satisfy, and it
+     works from file:// too, which is how these games are usually opened. */
+  function post(entry) {
+    var f = document.createElement("form");
+    f.method = "POST";
+    f.action = nfbConfig.action;
+    f.target = "nfb-sink";
+    f.style.display = "none";
+    [[nfbConfig.rating, entry.rating],
+     [nfbConfig.feedback, entry.feedback],
+     [nfbConfig.change, entry.change]].forEach(function (pair) {
+      var input = document.createElement("input");
+      input.type = "hidden";
+      input.name = pair[0];
+      input.value = pair[1];
+      f.appendChild(input);
+    });
+    document.body.appendChild(f);
+    f.submit();
+    setTimeout(function () { f.remove(); }, 4000);
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!rating) { showError("Pick a star rating first."); stars[0].focus(); return; }
+
+    var entry = {
+      game: nfbConfig.game,
+      rating: String(rating),
+      feedback: text.value.trim(),
+      change: change.value.trim(),
+      at: new Date().toISOString()
+    };
+
+    var log = read(LOG_KEY);
+    log.push(entry);
+    write(LOG_KEY, log);
+
+    if (configured()) {
+      post(entry);
+    } else {
+      var queue = read(QUEUE_KEY);
+      queue.push(entry);
+      write(QUEUE_KEY, queue);
+      console.warn("[feedback] No Google Form wired up yet - answer kept in localStorage under \"" +
+        QUEUE_KEY + "\" and sent once nfbConfig is filled in.");
+    }
+
+    form.hidden = true;
+    done.hidden = false;
+    document.getElementById("nfbBackToGame").focus();
+
+    setRating(0);
+    text.value = "";
+    change.value = "";
+    setTimeout(function () {
+      closeBox();
+      form.hidden = false;
+      done.hidden = true;
+      hideError();
+    }, 2600);
+  });
+
+  /* Anything captured before the form was wired up goes out on the next load. */
+  if (configured()) {
+    var pending = read(QUEUE_KEY);
+    if (pending.length) {
+      write(QUEUE_KEY, []);
+      pending.forEach(function (entry, idx) {
+        setTimeout(function () { post(entry); }, idx * 600);
+      });
+    }
+  }
+})();
+</script>
+
+</body>
+</html>

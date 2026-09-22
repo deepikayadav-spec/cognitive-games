@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cognitive Ability Games</title>
+<meta name="description" content="Five aptitude-style cognitive games — deduction, logical switching, attention and memory, inductive reasoning and spatial planning.">
+<meta name="theme-color" content="#12283F">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%A7%A9</text></svg>">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
+<style>
+  :root{
+    --navy:#12283F; --navy-2:#0E2439; --orange:#F5921E; --ink:#1B2430;
+    --muted:#6C7885; --line:#E2E5E9;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:#F4B41A; color:var(--ink);
+    font-family:'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif;
+    padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
+
+  header{background:var(--navy); color:#fff; text-align:center;
+    padding:calc(26px + env(safe-area-inset-top,0px)) 16px 26px}
+  .mark{display:inline-flex; align-items:center; gap:11px; margin-bottom:12px}
+  .mark .box{width:44px; height:44px; border:4px solid #7DB63A; display:grid; place-items:center;
+    font-weight:700; font-size:19px; color:#7DB63A}
+  .mark span{font-weight:700; font-size:clamp(20px,4vw,30px); letter-spacing:.04em; color:var(--orange)}
+  header h1{margin:0; font-size:clamp(24px,5vw,44px); font-weight:700; text-wrap:balance}
+  header p{margin:10px auto 0; max-width:60ch; color:#B9C6D6; font-size:clamp(13.5px,2vw,16px)}
+
+  .grid{max-width:1040px; margin:0 auto; padding:34px 16px 10px;
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:26px}
+  .card{background:#fff; border-radius:12px; padding:20px; display:flex; flex-direction:column;
+    align-items:center; gap:13px; text-align:center; box-shadow:0 6px 18px rgba(0,0,0,.14)}
+  .thumb{width:132px; height:132px; border-radius:16px; display:grid; place-items:center;
+    border:4px solid #fff; box-shadow:0 3px 10px rgba(0,0,0,.2); overflow:hidden}
+  .thumb svg{width:100%; height:100%; display:block}
+  .card h2{margin:0; font-size:18px; font-weight:600}
+  .card .skill{font-size:12.5px; color:var(--muted); min-height:34px}
+  .card a{background:#28A745; color:#fff; text-decoration:none; font-weight:600; font-size:15.5px;
+    padding:9px 30px; border-radius:5px}
+  .card a:hover{background:#218838}
+
+  footer{max-width:1040px; margin:26px auto 0; padding:0 16px; color:#5C4708; font-size:13px;
+    text-align:center}
+  footer a{color:#3E3006}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="mark"><span class="box">N</span><span>NIAT · COGNITIVE LAB</span></div>
+  <h1>Cognitive Ability Games</h1>
+  <p>Five aptitude-style drills in the format placement tests actually use. Each runs for four
+    minutes, scores as you go, and needs nothing but this page.</p>
+</header>
+
+<main class="grid" id="grid"></main>
+
+<footer>
+  Everything runs offline in your browser. Progress is not stored — each run starts fresh.
+</footer>
+
+<script>
+  var GAMES = [
+    {
+      title:'Deductive Challenge', skill:'Processing speed', href:'deductive.html', bg:'#16355C',
+      art:'<rect width="100" height="100" fill="#16355C"/>' +
+          '<g stroke="#fff" stroke-width="2" fill="#fff">' +
+          '<rect x="14" y="14" width="24" height="24"/><rect x="38" y="14" width="24" height="24"/>' +
+          '<rect x="62" y="14" width="24" height="24"/><rect x="14" y="38" width="24" height="24"/>' +
+          '<rect x="38" y="38" width="24" height="24"/><rect x="62" y="38" width="24" height="24"/>' +
+          '<rect x="14" y="62" width="24" height="24"/><rect x="38" y="62" width="24" height="24"/>' +
+          '<rect x="62" y="62" width="24" height="24"/></g>' +
+          '<polygon points="74,18 84,34 64,34" fill="#1A3E8C"/>' +
+          '<path d="M22 44h8v-8h8v8h8v8h-8v8h-8v-8h-8z" fill="#2A5CC8"/>' +
+          '<rect x="42" y="42" width="16" height="16" fill="#E01B1B"/>' +
+          '<circle cx="26" cy="74" r="8" fill="#6B8E23"/>' +
+          '<text x="50" y="80" font-size="18" font-weight="700" fill="#2B3440" text-anchor="middle">?</text>'
+    },
+    {
+      title:'Swith Challenge', skill:'Power of logical thinking', href:'swith.html', bg:'#0B79D0',
+      art:'<rect width="100" height="100" fill="#0B79D0"/>' +
+          '<g fill="#8BC53F">' +
+          '<circle cx="18" cy="18" r="7"/><rect x="30" y="11" width="14" height="14"/>' +
+          '<text x="56" y="24" font-size="18" font-weight="700" fill="#8BC53F" text-anchor="middle">%</text>' +
+          '<path d="M72 11h6v7h7v6h-7v7h-6v-7h-7v-6h7z"/>' +
+          '<polygon points="92,10 99,25 85,25"/></g>' +
+          '<rect x="26" y="40" width="48" height="13" rx="2" fill="#fff"/>' +
+          '<text x="50" y="50" font-size="9" font-weight="700" fill="#25313D" text-anchor="middle">426315</text>' +
+          '<polygon points="50,58 58,68 53,68 53,76 47,76 47,68 42,68" fill="#8BC53F"/>' +
+          '<g fill="#8BC53F"><circle cx="18" cy="88" r="7"/>' +
+          '<path d="M30 81l12 12M42 81L30 93" stroke="#8BC53F" stroke-width="5"/>' +
+          '<polygon points="56,80 63,95 49,95"/>' +
+          '<path d="M72 81h6v7h7v6h-7v7h-6v-7h-7v-6h7z"/>' +
+          '<rect x="86" y="81" width="13" height="13"/></g>'
+    },
+    {
+      title:'Grid Challenge', skill:'Power of attention, memory', href:'grid.html', bg:'#DCEEFA',
+      art:'<rect width="100" height="100" fill="#DCEEFA"/>' +
+          '<text x="50" y="14" font-size="9" fill="#25313D" text-anchor="middle">Symmetric?</text>' +
+          '<g fill="#5A5A5A">' +
+          '<rect x="16" y="24" width="7" height="7"/><rect x="27" y="24" width="7" height="7"/>' +
+          '<rect x="16" y="35" width="7" height="7"/><circle cx="30.5" cy="38.5" r="2"/>' +
+          '<rect x="16" y="46" width="7" height="7"/><rect x="27" y="46" width="7" height="7"/>' +
+          '<rect x="62" y="24" width="7" height="7"/><rect x="73" y="24" width="7" height="7"/>' +
+          '<circle cx="65.5" cy="38.5" r="2"/><rect x="73" y="35" width="7" height="7"/>' +
+          '<rect x="62" y="46" width="7" height="7"/><rect x="73" y="46" width="7" height="7"/></g>' +
+          '<text x="50" y="42" font-size="14" fill="#25313D" text-anchor="middle">=</text>' +
+          '<g fill="#8E9AAA"><circle cx="30" cy="72" r="5"/><circle cx="50" cy="82" r="5"/>' +
+          '<circle cx="70" cy="70" r="5"/><circle cx="42" cy="90" r="5"/>' +
+          '<circle cx="62" cy="90" r="5"/></g>' +
+          '<circle cx="50" cy="68" r="5" fill="#0B8A0B"/>'
+    },
+    {
+      title:'Inductive Challenge', skill:'Recognition', href:'inductive.html', bg:'#D8D8D8',
+      art:'<rect width="100" height="100" fill="#D8D8D8"/>' +
+          '<g stroke="#2B3440" stroke-width="1.5" fill="#fff">' +
+          '<rect x="14" y="14" width="24" height="24"/><rect x="38" y="14" width="24" height="24"/>' +
+          '<rect x="62" y="14" width="24" height="24"/><rect x="14" y="38" width="24" height="24"/>' +
+          '<rect x="38" y="38" width="24" height="24"/><rect x="62" y="38" width="24" height="24"/>' +
+          '<rect x="14" y="62" width="24" height="24"/><rect x="38" y="62" width="24" height="24"/>' +
+          '<rect x="62" y="62" width="24" height="24"/></g>' +
+          '<polygon points="26,20 34,33 18,33" fill="#1A3E8C"/>' +
+          '<circle cx="50" cy="26" r="8" fill="#9C27B0"/>' +
+          '<rect x="66" y="18" width="16" height="16" fill="#2E7D32"/>' +
+          '<path d="M22 44h8v-6h8v6h8v8h-8v6h-8v-6h-8z" fill="#D84315"/>' +
+          '<path d="M46 44h8v-6h8v6h8v8h-8v6h-8v-6h-8z" fill="#D84315"/>' +
+          '<rect x="66" y="42" width="16" height="16" fill="#2E7D32"/>' +
+          '<circle cx="26" cy="74" r="8" fill="#9C27B0"/>' +
+          '<rect x="42" y="66" width="16" height="16" fill="#2E7D32"/>' +
+          '<path d="M70 68h8v-6h0v6h8v8h-8v6h-8v-6h-8z" fill="#D84315"/>'
+    },
+    {
+      title:'Motion Challenge', skill:'Imagination, decision making, time management',
+      href:'motion.html', bg:'#2B2B2B',
+      art:'<rect width="100" height="100" fill="#2B2B2B"/>' +
+          '<g fill="#DCDCDC">' +
+          '<rect x="14" y="14" width="16" height="16"/><rect x="32" y="14" width="16" height="16"/>' +
+          '<rect x="50" y="14" width="16" height="16"/><rect x="68" y="14" width="16" height="16"/>' +
+          '<rect x="14" y="32" width="16" height="16"/><rect x="68" y="32" width="16" height="16"/>' +
+          '<rect x="14" y="50" width="16" height="16"/><rect x="32" y="50" width="16" height="16"/>' +
+          '<rect x="14" y="68" width="16" height="16"/><rect x="68" y="68" width="16" height="16"/></g>' +
+          '<rect x="32" y="32" width="16" height="16" fill="#B4494B"/>' +
+          '<rect x="50" y="32" width="16" height="16" fill="#6B3E8E"/>' +
+          '<rect x="50" y="50" width="16" height="16" fill="#E0B23C"/>' +
+          '<rect x="68" y="50" width="16" height="16" fill="#4EC3E0"/>' +
+          '<rect x="32" y="68" width="16" height="16" fill="#3A3F9E"/>' +
+          '<circle cx="76" cy="22" r="6" fill="#111"/>' +
+          '<circle cx="58" cy="76" r="6" fill="#B4494B"/>'
+    }
+  ];
+
+  var grid = document.getElementById('grid');
+  GAMES.forEach(function (g){
+    var card = document.createElement('article');
+    card.className = 'card';
+    card.innerHTML =
+      '<div class="thumb" style="background:' + g.bg + '">' +
+        '<svg viewBox="0 0 100 100" aria-hidden="true">' + g.art + '</svg>' +
+      '</div>' +
+      '<h2>' + g.title + '</h2>' +
+      '<div class="skill">' + g.skill + '</div>' +
+      '<a href="' + g.href + '">Play</a>';
+    grid.appendChild(card);
+  });
+</script>
+
+</body>
+</html>
