@@ -45,8 +45,8 @@
   .tab.on{background:var(--grad-amber); color:#3A1006; border-color:transparent;
     box-shadow:0 4px 0 #9A8A3F}
 
-  .board{
-    border:1px solid var(--stroke); border-radius:20px; overflow:hidden;
+  .lb{
+    display:block; border:1px solid var(--stroke); border-radius:20px; overflow:hidden;
     background:linear-gradient(165deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
   }
   .row{
@@ -65,6 +65,16 @@
   .empty{padding:40px 20px; text-align:center; color:var(--muted); font-size:14px; line-height:1.7}
   .empty b{color:var(--ink-2)}
 
+  .mine-h{
+    margin:30px 0 12px; font-size:15px; font-weight:800; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); text-align:center;
+  }
+  .pending{
+    margin-top:12px; padding:12px 15px; border-radius:var(--r-sm); font-size:13px;
+    color:var(--ink-2); background:rgba(148,26,27,.24);
+    border:1px dashed rgba(198,43,44,.6); text-align:center;
+  }
+  .pending b{color:var(--amber)}
   .foot{display:flex; gap:10px; justify-content:center; margin-top:22px; flex-wrap:wrap}
 </style>
 </head>
@@ -85,7 +95,11 @@
   </header>
 
   <div class="tabs" id="tabs"></div>
-  <div class="board" id="board"></div>
+  <div class="lb" id="board"></div>
+
+  <h2 class="mine-h" id="mineH">Your runs on this device</h2>
+  <div class="lb" id="mine"></div>
+  <div id="pendingNote"></div>
 
   <div class="foot">
     <a class="ghost" href="index.html">Play a game</a>
@@ -141,11 +155,15 @@
   function row(cls, rank, who, note, pts){
     return '<div class="row ' + cls + '">' +
              '<div class="rank ' + (rank === 1 ? 'g1' : rank === 2 ? 'g2' : rank === 3 ? 'g3' : '') + '">' +
-               (rank ? (rank <= 3 ? ['🥇','🥈','🥉'][rank - 1] : rank) : '#') +
+               (rank ? (rank <= 3 ? ['🥇','🥈','🥉'][rank - 1] : rank) : '') +
              '</div>' +
              '<div class="who-name">' + who + (note ? '<span>' + note + '</span>' : '') + '</div>' +
              '<div class="pts">' + pts + '</div>' +
            '</div>';
+  }
+
+  function headRow(label, right){
+    return '<div class="row head"><div></div><div>' + label + '</div><div>' + right + '</div></div>';
   }
 
   function escape(s){
@@ -169,7 +187,7 @@
           return;
         }
         var mine = me().toLowerCase();
-        var html = row('head', 0, 'Player', '', 'Score').replace('>#<', '></');
+        var html = headRow('Player', 'Score');
         rows.forEach(function (r, i){
           var note = game === 'all'
             ? r.games + (r.games === 1 ? ' game' : ' games')
@@ -185,7 +203,40 @@
       });
   }
 
+  /* Your own runs, straight from this browser. They show whether or not the
+     shared board is reachable, so a score is never invisible. */
+  function renderMine(){
+    var bests = {};
+    var pending = [];
+    try { bests = JSON.parse(localStorage.getItem('niat.best') || '{}'); } catch (e){}
+    try { pending = JSON.parse(localStorage.getItem('niat.pending') || '[]'); } catch (e){}
+
+    var names = {};
+    GAMES.forEach(function (g){ names[g.id] = g.name; });
+
+    var ids = Object.keys(bests).sort(function (a, b){ return bests[b].score - bests[a].score; });
+    if (!ids.length){
+      document.getElementById('mine').innerHTML =
+        '<div class="empty">No runs on this device yet.<br><b>Play one and it shows up here.</b></div>';
+      return;
+    }
+
+    var total = ids.reduce(function (sum, id){ return sum + bests[id].score; }, 0);
+    var html = headRow('Your best', 'Score');
+    ids.forEach(function (id){
+      html += row('', 0, escape(names[id] || id), 'level ' + (bests[id].level || 1), bests[id].score);
+    });
+    html += row('me', 0, 'All seven added up', ids.length + ' of 7 played', total);
+    document.getElementById('mine').innerHTML = html;
+
+    document.getElementById('pendingNote').innerHTML = pending.length
+      ? '<div class="pending">' + pending.length + ' run' + (pending.length === 1 ? '' : 's') +
+        ' waiting to post. <b>They go up on their own</b> once the board is reachable.</div>'
+      : '';
+  }
+
   render('all');
+  renderMine();
 })();
 </script>
 </body>

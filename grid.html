@@ -588,6 +588,7 @@
       S.score >= 20 ? 'Solid' :
       S.score >= 0  ? 'Room to improve' : 'Guessing costs you';
     sfx(S.score > 0 ? 'win' : 'over');
+    if (window.CG) CG.recordBest('grid', S.score, S.level);
     postRun();
     show('endScreen', true);
   }

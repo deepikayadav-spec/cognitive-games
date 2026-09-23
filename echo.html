@@ -90,7 +90,13 @@
 
   /* how far back you are matching, and how fast the stream runs */
   function nBack(level){ return level < 3 ? 2 : level < 6 ? 3 : level < 9 ? 4 : 5; }
-  function pace(level){ return Math.max(850, 2300 - (level - 1) * 150); }    // ms per symbol
+  /* Pace is set per depth, not on one falling line: 2-back is easy enough that
+     a slow stream is just boring, while a deeper window needs a beat more to
+     read. Within each depth it still tightens every level. */
+  function pace(level){
+    var base = {2:1100, 3:1450, 4:1550, 5:1650}[nBack(level)];
+    return Math.max(780, base - (level - 1) * 60);
+  }
   /* more shapes in the bag means fewer accidental repeats to lean on */
   function palette(level){ return Math.min(4 + Math.floor((level - 1) / 2), SHAPES.length); }
   function trials(level){ return Math.min(16 + Math.floor((level - 1) / 2) * 2, 26); }
@@ -211,7 +217,7 @@
            'You are not remembering a list. You are holding a moving window and updating it every ' +
            'couple of seconds, which is exactly the thing assessment batteries are measuring.'],
     howto:['+3 for catching a repeat, −1 for a false alarm or a miss',
-           '2-back to 5-back, 4 shapes to 8, and 2.3s a symbol down to 0.85s',
+           '2-back to 5-back, 4 shapes to 8, and the stream never stops tightening',
            '16 symbols a round, rising to 26 · 4 minutes total'],
     session:240,
     levelTime:null,

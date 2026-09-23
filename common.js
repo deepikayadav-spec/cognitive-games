@@ -255,6 +255,22 @@ window.CG = (function () {
     try { localStorage.setItem(QUEUE_KEY, JSON.stringify(list.slice(-40))); } catch (e){ /* full */ }
   }
 
+  /* Kept regardless of whether the post lands, so a player can always see
+     their own runs — useful offline, and while the board is still being set up. */
+  var BEST_KEY = 'niat.best';
+  function localBests(){
+    try { return JSON.parse(localStorage.getItem(BEST_KEY) || '{}'); } catch (e){ return {}; }
+  }
+  function recordBest(game, score, level){
+    var all = localBests();
+    var cur = all[game];
+    if (!cur || score > cur.score){
+      all[game] = {score:score, level:level, at:Date.now()};
+      try { localStorage.setItem(BEST_KEY, JSON.stringify(all)); } catch (e){ /* full */ }
+    }
+    return all[game];
+  }
+
   function postRun(run){
     return fetch('/api/scores', {
       method:'POST',
@@ -645,6 +661,7 @@ window.CG = (function () {
       };
       sfx(S.score > 0 ? 'win' : 'over');
       if (S.score > 0) confetti(46);
+      recordBest(cfg.slug || cfg.name, S.score, S.level);
 
       nameInput.value = playerName();
       nameBtn.disabled = false;
@@ -708,6 +725,7 @@ window.CG = (function () {
     create:create, el:el, shuffle:shuffle, pick:pick, randInt:randInt,
     beep:beep, chime:chime, sfx:sfx, applause:applause, setMuted:setMuted, isMuted:isMuted,
     playerName:playerName, setPlayerName:setPlayerName, submitRun:submit,
+    recordBest:recordBest, localBests:localBests,
     shade:shade, grad:grad,
     confetti:confetti, streakLine:streakLine, reduced:reduced
   };
