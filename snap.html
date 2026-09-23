@@ -60,23 +60,29 @@
 
   /* four colours nobody will mix up, all sitting in the crest's range */
   var COLOURS = [
-    {name:'RED',   hex:'#E23B34'},
-    {name:'CREAM', hex:'#F5EFBB'},
-    {name:'GREEN', hex:'#5BD69A'},
-    {name:'TEAL',  hex:'#4FA8B8'}
+    {name:'RED',    hex:'#E23B34'},
+    {name:'CREAM',  hex:'#F5EFBB'},
+    {name:'GREEN',  hex:'#5BD69A'},
+    {name:'TEAL',   hex:'#4FA8B8'},
+    {name:'GOLD',   hex:'#E0B457'},
+    {name:'VIOLET', hex:'#B97FD6'}
   ];
 
-  var TRIALS = 8;
-  function limit(level){ return Math.max(1100, 2600 - (level - 1) * 180); }  // ms to answer
-  /* the rule only flips once the basic version is comfortable */
+  /* more swatches to choose between, less time to choose */
+  function palette(level){ return level < 3 ? 4 : level < 6 ? 5 : 6; }
+  function trials(level){ return Math.min(8 + Math.floor(level / 3), 12); }
+  function limit(level){ return Math.max(650, 2400 - (level - 1) * 190); }   // ms to answer
+  /* the rule starts steady, then alternates, then goes random every trial */
   function ruleFor(level, trial){
-    if (level < 3) return 'ink';
-    if (level < 5) return trial % 2 === 0 ? 'ink' : 'word';
+    if (level < 2) return 'ink';
+    if (level < 4) return trial % 2 === 0 ? 'ink' : 'word';
     return Math.random() < 0.5 ? 'ink' : 'word';
   }
 
   function buildLevel(api, board){
     var level = api.level(), ms = limit(level);
+    var pool = COLOURS.slice(0, palette(level));
+    var TRIALS = trials(level);
     var timers = [];
 
     var wrap = CG.el('div', 'wrap');
@@ -90,7 +96,7 @@
       dots.push(dot);
     }
     var swatches = CG.el('div', 'swatches');
-    var buttons = COLOURS.map(function (c, i){
+    var buttons = pool.map(function (c, i){
       var s = CG.el('button', 'sw');
       s.style.background = 'linear-gradient(180deg,' + CG.shade(c.hex, 0.22) + ',' + c.hex + ')';
       s.setAttribute('aria-label', c.name);
@@ -140,10 +146,10 @@
       }
 
       var rule = ruleFor(level, at);
-      var wordIdx = CG.randInt(COLOURS.length);
+      var wordIdx = CG.randInt(pool.length);
       var inkIdx;
       /* a trial is only a Stroop trial if the two disagree */
-      do { inkIdx = CG.randInt(COLOURS.length); } while (inkIdx === wordIdx && Math.random() < 0.85);
+      do { inkIdx = CG.randInt(pool.length); } while (inkIdx === wordIdx && Math.random() < 0.85);
 
       want = rule === 'ink' ? inkIdx : wordIdx;
 
@@ -155,8 +161,8 @@
         timers.push(setTimeout(function (){ ruleEl.classList.remove('flip'); }, 220));
       }
 
-      wordEl.textContent = COLOURS[wordIdx].name;
-      wordEl.style.color = COLOURS[inkIdx].hex;
+      wordEl.textContent = pool[wordIdx].name;
+      wordEl.style.color = pool[inkIdx].hex;
       wordEl.classList.remove('gone');
       dots[at].className = 'now';
       answered = false;
@@ -195,7 +201,7 @@
            'mid-round, which is where autopilot gets punished.'],
     howto:['+3 for the right swatch, −1 for a wrong one or running out of time',
            'Watch the banner: TAP THE INK or TAP THE WORD',
-           'The clock per answer tightens every round · 4 minutes total'],
+           '4 swatches become 6, and 2.4s an answer becomes 0.65s'],
     session:240,
     levelTime:null,
     pointsRight:3, pointsWrong:1, scoreFull:80,

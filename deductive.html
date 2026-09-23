@@ -164,7 +164,7 @@
      which is exactly the deduction the real game asks for. */
   function buildLevel(api, board){
     var level = api.level();
-    var n = level < 4 ? 3 : level < 8 ? 4 : 5;
+    var n = level < 3 ? 3 : level < 6 ? 4 : level < 10 ? 5 : 6;
     var syms = CG.shuffle(SYMBOLS.slice()).slice(0, n);
     var answer = syms[0];
     var others = syms.slice(1);
@@ -248,9 +248,10 @@
            'Grids grow from 3×3 to 5×5 as you climb. Read the row, read the column, then tap.'],
     howto:['+1 for a correct pick, −1 for a wrong one',
            'No symbol repeats in any row or column',
-           '20–30 seconds a grid · 4 minutes total'],
+           'The grid grows to 6×6 while the clock falls from 18s to 7s'],
     session:240,
-    levelTime:function (level){ return level < 4 ? 20 : level < 8 ? 25 : 30; },
+    /* the grid grows AND the clock shrinks, so every level bites harder */
+    levelTime:function (level){ return Math.max(7, 18 - (level - 1) * 1.2); },
     pointsRight:1, pointsWrong:1, scoreFull:40,
     buildLevel:buildLevel
   });

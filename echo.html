@@ -69,7 +69,9 @@
     {id:'triangle', c:'#5BD69A'},
     {id:'cross',    c:'#4FA8B8'},
     {id:'diamond',  c:'#B97FD6'},
-    {id:'star',     c:'#E0B457'}
+    {id:'star',     c:'#E0B457'},
+    {id:'hex',      c:'#E8927A'},
+    {id:'chevron',  c:'#7FC7A8'}
   ];
 
   function shapeSVG(s){
@@ -81,17 +83,23 @@
     if (s.id === 'cross')    out += '<path d="M38 6h24v32h32v24H62v32H38V62H6V38h32z" fill="' + f + '"/>';
     if (s.id === 'diamond')  out += '<polygon points="50,4 96,50 50,96 4,50" fill="' + f + '"/>';
     if (s.id === 'star')     out += '<polygon points="50,5 62,38 97,38 68,59 79,93 50,72 21,93 32,59 3,38 38,38" fill="' + f + '"/>';
+    if (s.id === 'hex')      out += '<polygon points="50,6 90,28 90,72 50,94 10,72 10,28" fill="' + f + '"/>';
+    if (s.id === 'chevron')  out += '<path d="M20 12h28l32 38-32 38H20l32-38z" fill="' + f + '"/>';
     return out + '</svg>';
   }
 
   /* how far back you are matching, and how fast the stream runs */
-  function nBack(level){ return level < 3 ? 2 : level < 6 ? 3 : 4; }
-  function pace(level){ return Math.max(1250, 2300 - (level - 1) * 130); }   // ms per symbol
-  var TRIALS = 16, MATCH_RATE = 0.32;
+  function nBack(level){ return level < 3 ? 2 : level < 6 ? 3 : level < 9 ? 4 : 5; }
+  function pace(level){ return Math.max(850, 2300 - (level - 1) * 150); }    // ms per symbol
+  /* more shapes in the bag means fewer accidental repeats to lean on */
+  function palette(level){ return Math.min(4 + Math.floor((level - 1) / 2), SHAPES.length); }
+  function trials(level){ return Math.min(16 + Math.floor((level - 1) / 2) * 2, 26); }
+  var MATCH_RATE = 0.32;
 
   function buildLevel(api, board){
     var level = api.level();
     var n = nBack(level), gap = pace(level);
+    var bag = palette(level), TRIALS = trials(level);
     var timers = [];
 
     /* the stream: about a third of the trials repeat the symbol n steps back */
@@ -100,7 +108,7 @@
       if (i >= n && Math.random() < MATCH_RATE) seq.push(seq[i - n]);
       else {
         var s;
-        do { s = CG.randInt(SHAPES.length); } while (i >= n && s === seq[i - n] && Math.random() < 0.8);
+        do { s = CG.randInt(bag); } while (i >= n && s === seq[i - n] && Math.random() < 0.8);
         seq.push(s);
       }
     }
@@ -202,8 +210,8 @@
            'You are not remembering a list. You are holding a moving window and updating it every ' +
            'couple of seconds, which is exactly the thing assessment batteries are measuring.'],
     howto:['+3 for catching a repeat, −1 for a false alarm or a miss',
-           'The window gets deeper and the stream gets faster as you climb',
-           '16 symbols a round · 4 minutes total'],
+           '2-back to 5-back, 4 shapes to 8, and 2.3s a symbol down to 0.85s',
+           '16 symbols a round, rising to 26 · 4 minutes total'],
     session:240,
     levelTime:null,
     pointsRight:3, pointsWrong:1, scoreFull:80,

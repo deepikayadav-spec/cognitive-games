@@ -176,40 +176,60 @@
     return true;
   }
 
-  /* A rule is a substitution: every shape becomes another shape, positions
-     untouched. That is what the real game's example does. */
-  function makeRule(){
+  /* A rule swaps every shape for another one. From level 4 the whole grid can
+     also turn or flip, which is far harder to read at a glance. */
+  var MOVES = ['none', 'rot180', 'mirror', 'rot90'];
+  function movesFor(level){
+    return level < 4 ? 1 : level < 7 ? 3 : 4;      // how many of MOVES are in play
+  }
+  function makeRule(level){
     var to;
     do { to = CG.shuffle([0, 1, 2, 3]); }
     while (to.some(function (v, i){ return v === i; }));     // no shape maps to itself
-    return to;
+    return {sub:to, move:MOVES[CG.randInt(movesFor(level))]};
   }
-  function apply(rule, g){ return g.map(function (v){ return rule[v]; }); }
+  function place(move, g){
+    var out = [], r, c;
+    if (move === 'none') return g.slice();
+    for (r = 0; r < 3; r++){
+      for (c = 0; c < 3; c++){
+        if (move === 'rot180') out[r * 3 + c] = g[(2 - r) * 3 + (2 - c)];
+        if (move === 'mirror') out[r * 3 + c] = g[r * 3 + (2 - c)];
+        if (move === 'rot90')  out[r * 3 + c] = g[(2 - c) * 3 + r];
+      }
+    }
+    return out;
+  }
+  function apply(rule, g){
+    return place(rule.move, g.map(function (v){ return rule.sub[v]; }));
+  }
   function sameRule(a, b){
-    for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+    if (a.move !== b.move) return false;
+    for (var i = 0; i < a.sub.length; i++) if (a.sub[i] !== b.sub[i]) return false;
     return true;
   }
 
   function buildLevel(api, board){
-    var rule = makeRule();
+    var level = api.level();
+    var rule = makeRule(level);
     var example = randomGrid();
     var exampleAfter = apply(rule, example);
 
     var answerBefore = randomGrid();
     var answerAfter = apply(rule, answerBefore);
 
-    /* the two decoys follow a different rule, so only one pair is valid */
-    var other;
-    do { other = makeRule(); } while (sameRule(other, rule));
-    var decoyBefore = randomGrid();
-    var decoyAfter = apply(other, decoyBefore);
-
-    var cards = CG.shuffle([
-      {g:answerBefore, key:'a'},
-      {g:answerAfter,  key:'a'},
-      {g:decoyBefore,  key:'b'},
-      {g:decoyAfter,   key:'b'}
-    ]);
+    /* decoy pairs follow their own rules, so only one pair is ever valid.
+       A third decoy pair joins from level 4, making it two out of six. */
+    var pool = [{g:answerBefore, key:'a'}, {g:answerAfter, key:'a'}];
+    var decoys = level < 4 ? 1 : 2;
+    for (var d = 0; d < decoys; d++){
+      var other;
+      do { other = makeRule(level); } while (sameRule(other, rule));
+      var before = randomGrid();
+      pool.push({g:before, key:'d' + d});
+      pool.push({g:apply(other, before), key:'d' + d});
+    }
+    var cards = CG.shuffle(pool);
 
     var panes = CG.el('div', 'panes');
 
@@ -271,10 +291,11 @@
            'Crack that rule, then pick the two grids on the right that follow it — one before, one ' +
            'after. The other two are playing by a different rule entirely.'],
     howto:['+3 for the right pair, −1 for a wrong one',
+           'The clock falls from 30s to 11s',
            'Pick exactly two grids',
-           '30 seconds a level'],
+           'From level 4 the grid also turns or flips, and six grids to sift, not four'],
     session:240,
-    levelTime:30,
+    levelTime:function (level){ return Math.max(11, 30 - (level - 1) * 2.2); },
     pointsRight:3, pointsWrong:1, scoreFull:60,
     buildLevel:buildLevel
   });

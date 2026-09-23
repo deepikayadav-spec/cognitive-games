@@ -249,9 +249,9 @@
 
   /* ---------------- level generation ---------------- */
   function generate(level){
-    var blockCount = level < 3 ? 3 : level < 6 ? 4 : 5;
-    var wallCount = level < 4 ? 1 : 2;
-    var wantMin = Math.min(4 + Math.floor(level / 2), 9);
+    var blockCount = Math.min(3 + Math.floor((level - 1) / 2), 6);
+    var wallCount = Math.min(1 + Math.floor((level - 1) / 3), 3);
+    var wantMin = Math.min(4 + level, 12);
 
     for (var attempt = 0; attempt < 900; attempt++){
       var taken = Object.create(null), walls = [], blocks = [], ok = true;
@@ -294,8 +294,8 @@
 
       var state = {blocks:blocks, ball:ball};
       if (ballWalksIt(state, walls, hole)) continue;   // a block must be in the way
-      var best = solve(state, walls, hole, 12);
-      if (best >= wantMin && best <= 12){
+      var best = solve(state, walls, hole, 16);
+      if (best >= wantMin && best <= 16){
         return {state:state, walls:walls, hole:hole, best:best};
       }
     }
@@ -312,7 +312,10 @@
     }
 
     var state = puzzle.state, walls = puzzle.walls, hole = puzzle.hole;
-    var limit = puzzle.best + 2, used = 0, selected = null, done = false;
+    /* the spare moves dry up as you climb: by level 9 the best route is the
+       only route */
+    var slack = Math.max(0, 3 - Math.floor(api.level() / 3));
+    var limit = puzzle.best + slack, used = 0, selected = null, done = false;
 
     var wrap = CG.el('div', 'wrap');
     var grid = CG.el('div', 'grid');
@@ -464,7 +467,7 @@
            'and you only get so many.',
            'Tap a block or the ball, then tap where it goes. Arrow keys work too.'],
     howto:['+4 for sinking the ball, −1 if you run out of moves',
-           'Every board is solvable — the limit is the best route plus two',
+           'Every board is solvable — but the spare moves run out by level 9',
            '4 minutes total, boards get tighter as you climb'],
     session:240,
     levelTime:null,
