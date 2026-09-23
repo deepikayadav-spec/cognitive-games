@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Echo</title>
+<meta name="theme-color" content="#190508">
+<link rel="icon" href="niat-logo.png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<style>
+  .wrap{display:flex; flex-direction:column; align-items:center; gap:clamp(14px,3vh,28px)}
+
+  .nback{
+    font-size:12.5px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
+    color:#3A1006; background:var(--grad-amber); padding:7px 16px; border-radius:99px;
+    box-shadow:0 4px 0 #9A8A3F, inset 0 1px 0 rgba(255,255,255,.5);
+  }
+
+  .stagecard{
+    width:clamp(160px,34vw,230px); height:clamp(160px,34vw,230px); border-radius:34px;
+    display:grid; place-items:center; position:relative;
+    background:linear-gradient(180deg,rgba(245,239,187,.13),rgba(245,239,187,.03));
+    border:1px solid var(--stroke);
+    box-shadow:inset 0 3px 0 rgba(255,255,255,.2), inset 0 -5px 0 rgba(0,0,0,.3),
+      0 16px 34px rgba(0,0,0,.45);
+    transition:transform .12s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .stagecard svg{width:56%; height:56%; filter:drop-shadow(0 4px 6px rgba(0,0,0,.5))}
+  .stagecard.beat{transform:scale(1.04)}
+  .stagecard.hit{border-color:var(--green-lite);
+    box-shadow:0 0 0 3px rgba(91,214,154,.5), 0 0 44px rgba(91,214,154,.35), inset 0 3px 0 rgba(255,255,255,.2)}
+  .stagecard.miss{border-color:var(--coral);
+    box-shadow:0 0 0 3px rgba(255,122,99,.5), 0 0 44px rgba(255,122,99,.3), inset 0 3px 0 rgba(255,255,255,.2)}
+  .stagecard.rest{opacity:.35}
+
+  .track{display:flex; gap:5px; flex-wrap:wrap; justify-content:center; max-width:min(420px,90vw)}
+  .track i{width:9px; height:9px; border-radius:50%; background:rgba(245,239,187,.16)}
+  .track i.done{background:rgba(245,239,187,.42)}
+  .track i.hit{background:var(--green-lite)}
+  .track i.miss{background:var(--coral)}
+  .track i.now{background:var(--amber); transform:scale(1.35)}
+
+  .matchbtn{
+    border:0; border-radius:99px; color:#FBF5E2; font-weight:800; letter-spacing:.03em;
+    font-size:clamp(17px,3vw,22px); padding:16px clamp(34px,8vw,64px);
+    background:var(--grad-brand);
+    box-shadow:0 8px 0 var(--brand-deep), 0 18px 32px rgba(148,26,27,.5),
+      inset 0 2px 0 rgba(255,255,255,.3);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .matchbtn:active{transform:translateY(6px);
+    box-shadow:0 2px 0 var(--brand-deep), inset 0 3px 8px rgba(0,0,0,.35)}
+  .matchbtn[disabled]{opacity:.45}
+  .hintline{color:var(--muted); font-size:12.5px; font-weight:600; text-align:center}
+</style>
+</head>
+<body>
+<script src="common.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  /* Six shapes, far enough apart that nobody confuses two of them under load */
+  var SHAPES = [
+    {id:'circle',   c:'#F5EFBB'},
+    {id:'square',   c:'#C62B2C'},
+    {id:'triangle', c:'#5BD69A'},
+    {id:'cross',    c:'#4FA8B8'},
+    {id:'diamond',  c:'#B97FD6'},
+    {id:'star',     c:'#E0B457'}
+  ];
+
+  function shapeSVG(s){
+    var g = CG.grad(s.c), f = g.fill;
+    var out = '<svg viewBox="0 0 100 100" aria-hidden="true">' + g.defs;
+    if (s.id === 'circle')   out += '<circle cx="50" cy="50" r="42" fill="' + f + '"/>';
+    if (s.id === 'square')   out += '<rect x="10" y="10" width="80" height="80" rx="14" fill="' + f + '"/>';
+    if (s.id === 'triangle') out += '<polygon points="50,8 94,90 6,90" fill="' + f + '"/>';
+    if (s.id === 'cross')    out += '<path d="M38 6h24v32h32v24H62v32H38V62H6V38h32z" fill="' + f + '"/>';
+    if (s.id === 'diamond')  out += '<polygon points="50,4 96,50 50,96 4,50" fill="' + f + '"/>';
+    if (s.id === 'star')     out += '<polygon points="50,5 62,38 97,38 68,59 79,93 50,72 21,93 32,59 3,38 38,38" fill="' + f + '"/>';
+    return out + '</svg>';
+  }
+
+  /* how far back you are matching, and how fast the stream runs */
+  function nBack(level){ return level < 3 ? 2 : level < 6 ? 3 : 4; }
+  function pace(level){ return Math.max(1250, 2300 - (level - 1) * 130); }   // ms per symbol
+  var TRIALS = 16, MATCH_RATE = 0.32;
+
+  function buildLevel(api, board){
+    var level = api.level();
+    var n = nBack(level), gap = pace(level);
+    var timers = [];
+
+    /* the stream: about a third of the trials repeat the symbol n steps back */
+    var seq = [];
+    for (var i = 0; i < TRIALS; i++){
+      if (i >= n && Math.random() < MATCH_RATE) seq.push(seq[i - n]);
+      else {
+        var s;
+        do { s = CG.randInt(SHAPES.length); } while (i >= n && s === seq[i - n] && Math.random() < 0.8);
+        seq.push(s);
+      }
+    }
+
+    var wrap = CG.el('div', 'wrap');
+    var badge = CG.el('div', 'nback', n + '-BACK');
+    var card = CG.el('div', 'stagecard rest');
+    var track = CG.el('div', 'track');
+    var dots = [];
+    for (var d = 0; d < TRIALS; d++){
+      var dot = CG.el('i');
+      track.appendChild(dot);
+      dots.push(dot);
+    }
+    var btn = CG.el('button', 'matchbtn', 'MATCH');
+    var hint = CG.el('div', 'hintline',
+      'tap when it repeats the symbol ' + n + ' back · space works too');
+
+    wrap.appendChild(badge); wrap.appendChild(card);
+    wrap.appendChild(track); wrap.appendChild(btn); wrap.appendChild(hint);
+    board.appendChild(wrap);
+
+    api.prompt(n + ' back — tap when it repeats 🔁');
+
+    var at = -1, claimed = false, running = true;
+
+    function isMatch(i){ return i >= n && seq[i] === seq[i - n]; }
+
+    function claim(){
+      if (!running || at < 0 || claimed) return;
+      claimed = true;
+      if (isMatch(at)){
+        api.tally(3);
+        card.className = 'stagecard hit';
+        dots[at].className = 'hit';
+      } else {
+        api.tally(-1, 'not a match');
+        card.className = 'stagecard miss';
+        dots[at].className = 'miss';
+      }
+    }
+
+    btn.addEventListener('click', claim);
+    function onKey(e){
+      if (e.code === 'Space' || e.key === ' '){ e.preventDefault(); claim(); }
+    }
+    window.addEventListener('keydown', onKey);
+
+    function step(){
+      /* score the trial that just ended: a match nobody claimed is a miss */
+      if (at >= 0 && !claimed && isMatch(at)){
+        api.tally(-1, 'missed one');
+        dots[at].className = 'miss';
+      } else if (at >= 0 && !claimed){
+        dots[at].className = 'done';
+      }
+
+      at++;
+      if (at >= TRIALS){
+        running = false;
+        window.removeEventListener('keydown', onKey);
+        btn.disabled = true;
+        card.className = 'stagecard rest';
+        api.prompt('round clear — going deeper 🔁');
+        api.after(900, api.nextLevel);
+        return;
+      }
+
+      claimed = false;
+      card.className = 'stagecard beat';
+      card.innerHTML = shapeSVG(SHAPES[seq[at]]);
+      dots[at].className = 'now';
+      CG.sfx('tap');
+      timers.push(setTimeout(function (){ card.className = 'stagecard'; }, 140));
+      timers.push(setTimeout(step, gap));
+    }
+
+    /* a beat of warning before the stream starts */
+    timers.push(setTimeout(step, 700));
+
+    /* the engine clears the board between levels; drop the timers with it */
+    var obs = new MutationObserver(function (){
+      if (!board.contains(wrap)){
+        running = false;
+        timers.forEach(clearTimeout);
+        window.removeEventListener('keydown', onKey);
+        obs.disconnect();
+      }
+    });
+    obs.observe(board, {childList:true});
+  }
+
+  CG.create({
+    name:'Echo',
+    tag:'Working memory',
+    prompt:'Tap when it repeats',
+    intro:['Symbols come past one at a time. Tap MATCH when the one on screen is the same as the ' +
+           'one you saw a fixed number of steps back — two at first, then three, then four.',
+           'You are not remembering a list. You are holding a moving window and updating it every ' +
+           'couple of seconds, which is exactly the thing assessment batteries are measuring.'],
+    howto:['+3 for catching a repeat, −1 for a false alarm or a miss',
+           'The window gets deeper and the stream gets faster as you climb',
+           '16 symbols a round · 4 minutes total'],
+    session:240,
+    levelTime:null,
+    pointsRight:3, pointsWrong:1, scoreFull:80,
+    nextDelay:600,
+    buildLevel:buildLevel
+  });
+})();
+</script>
+</body>
+</html>

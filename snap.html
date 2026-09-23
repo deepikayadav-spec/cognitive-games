@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Snap</title>
+<meta name="theme-color" content="#190508">
+<link rel="icon" href="niat-logo.png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<style>
+  .wrap{display:flex; flex-direction:column; align-items:center; gap:clamp(16px,3.6vh,34px)}
+
+  .rule{
+    font-size:clamp(12px,2vw,14px); font-weight:800; letter-spacing:.14em; text-transform:uppercase;
+    padding:8px 18px; border-radius:99px; color:#3A1006; background:var(--grad-amber);
+    box-shadow:0 4px 0 #9A8A3F, inset 0 1px 0 rgba(255,255,255,.5);
+    transition:transform .2s cubic-bezier(.2,1.5,.4,1);
+  }
+  .rule.flip{transform:scale(1.12)}
+
+  .word{
+    font-size:clamp(46px,13vw,104px); font-weight:800; letter-spacing:-.03em; line-height:1;
+    text-shadow:0 6px 18px rgba(0,0,0,.55); user-select:none;
+    transition:opacity .12s ease, transform .12s ease;
+  }
+  .word.gone{opacity:0; transform:scale(.9)}
+
+  .swatches{display:flex; gap:clamp(10px,2.6vw,20px); flex-wrap:wrap; justify-content:center}
+  .sw{
+    width:clamp(62px,13vw,96px); height:clamp(62px,13vw,96px); border-radius:20px; border:0;
+    cursor:pointer; position:relative;
+    box-shadow:0 7px 0 rgba(0,0,0,.42), inset 0 3px 0 rgba(255,255,255,.35),
+      inset 0 -4px 0 rgba(0,0,0,.25), 0 14px 26px rgba(0,0,0,.4);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .sw:hover{transform:translateY(-3px)}
+  .sw:active{transform:translateY(5px);
+    box-shadow:0 2px 0 rgba(0,0,0,.42), inset 0 3px 8px rgba(0,0,0,.35)}
+  .sw.right::after, .sw.wrong::after{
+    content:''; position:absolute; inset:-5px; border-radius:24px; pointer-events:none;
+  }
+  .sw.right::after{box-shadow:0 0 0 3px var(--green-lite), 0 0 30px rgba(91,214,154,.5)}
+  .sw.wrong::after{box-shadow:0 0 0 3px var(--coral), 0 0 30px rgba(255,122,99,.45)}
+
+  .beat{display:flex; gap:5px}
+  .beat i{width:9px; height:9px; border-radius:50%; background:rgba(245,239,187,.16)}
+  .beat i.hit{background:var(--green-lite)}
+  .beat i.miss{background:var(--coral)}
+  .beat i.now{background:var(--amber); transform:scale(1.35)}
+  .hintline{color:var(--muted); font-size:12.5px; font-weight:600; text-align:center}
+</style>
+</head>
+<body>
+<script src="common.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  /* four colours nobody will mix up, all sitting in the crest's range */
+  var COLOURS = [
+    {name:'RED',   hex:'#E23B34'},
+    {name:'CREAM', hex:'#F5EFBB'},
+    {name:'GREEN', hex:'#5BD69A'},
+    {name:'TEAL',  hex:'#4FA8B8'}
+  ];
+
+  var TRIALS = 8;
+  function limit(level){ return Math.max(1100, 2600 - (level - 1) * 180); }  // ms to answer
+  /* the rule only flips once the basic version is comfortable */
+  function ruleFor(level, trial){
+    if (level < 3) return 'ink';
+    if (level < 5) return trial % 2 === 0 ? 'ink' : 'word';
+    return Math.random() < 0.5 ? 'ink' : 'word';
+  }
+
+  function buildLevel(api, board){
+    var level = api.level(), ms = limit(level);
+    var timers = [];
+
+    var wrap = CG.el('div', 'wrap');
+    var ruleEl = CG.el('div', 'rule', 'TAP THE INK');
+    var wordEl = CG.el('div', 'word', '');
+    var beats = CG.el('div', 'beat');
+    var dots = [];
+    for (var b = 0; b < TRIALS; b++){
+      var dot = CG.el('i');
+      beats.appendChild(dot);
+      dots.push(dot);
+    }
+    var swatches = CG.el('div', 'swatches');
+    var buttons = COLOURS.map(function (c, i){
+      var s = CG.el('button', 'sw');
+      s.style.background = 'linear-gradient(180deg,' + CG.shade(c.hex, 0.22) + ',' + c.hex + ')';
+      s.setAttribute('aria-label', c.name);
+      s.addEventListener('click', function (){ answer(i, s); });
+      swatches.appendChild(s);
+      return s;
+    });
+    var hint = CG.el('div', 'hintline', 'the word lies — read the rule, not the text');
+
+    wrap.appendChild(ruleEl); wrap.appendChild(wordEl); wrap.appendChild(beats);
+    wrap.appendChild(swatches); wrap.appendChild(hint);
+    board.appendChild(wrap);
+
+    var at = -1, want = -1, answered = true, running = true;
+
+    function clearMarks(){
+      buttons.forEach(function (s){ s.className = 'sw'; });
+    }
+
+    function answer(i, node){
+      if (!running || answered) return;
+      answered = true;
+      clearTimers();
+      if (i === want){
+        node.classList.add('right');
+        dots[at].className = 'hit';
+        api.tally(3);
+      } else {
+        node.classList.add('wrong');
+        buttons[want].classList.add('right');
+        dots[at].className = 'miss';
+        api.tally(-1);
+      }
+      timers.push(setTimeout(next, 420));
+    }
+
+    function clearTimers(){ timers.forEach(clearTimeout); timers = []; }
+
+    function next(){
+      clearMarks();
+      at++;
+      if (at >= TRIALS){
+        running = false;
+        api.prompt('round clear — speeding up ⚡');
+        api.after(700, api.nextLevel);
+        return;
+      }
+
+      var rule = ruleFor(level, at);
+      var wordIdx = CG.randInt(COLOURS.length);
+      var inkIdx;
+      /* a trial is only a Stroop trial if the two disagree */
+      do { inkIdx = CG.randInt(COLOURS.length); } while (inkIdx === wordIdx && Math.random() < 0.85);
+
+      want = rule === 'ink' ? inkIdx : wordIdx;
+
+      var nextRule = rule === 'ink' ? 'TAP THE INK' : 'TAP THE WORD';
+      if (ruleEl.textContent !== nextRule){
+        ruleEl.textContent = nextRule;
+        ruleEl.classList.add('flip');
+        CG.sfx('select');
+        timers.push(setTimeout(function (){ ruleEl.classList.remove('flip'); }, 220));
+      }
+
+      wordEl.textContent = COLOURS[wordIdx].name;
+      wordEl.style.color = COLOURS[inkIdx].hex;
+      wordEl.classList.remove('gone');
+      dots[at].className = 'now';
+      answered = false;
+
+      timers.push(setTimeout(function (){
+        if (answered) return;
+        answered = true;
+        wordEl.classList.add('gone');
+        buttons[want].classList.add('right');
+        dots[at].className = 'miss';
+        api.tally(-1, 'too slow');
+        timers.push(setTimeout(next, 420));
+      }, ms));
+    }
+
+    api.prompt('Tap the colour, not the word ⚡');
+    timers.push(setTimeout(next, 600));
+
+    var obs = new MutationObserver(function (){
+      if (!board.contains(wrap)){
+        running = false;
+        clearTimers();
+        obs.disconnect();
+      }
+    });
+    obs.observe(board, {childList:true});
+  }
+
+  CG.create({
+    name:'Snap',
+    tag:'Attention and impulse control',
+    prompt:'Tap the colour, not the word',
+    intro:['A colour name appears, printed in the wrong colour. The banner tells you which one ' +
+           'counts — the ink it is printed in, or the word itself.',
+           'Reading is automatic, so the word fights you. From level 3 the rule starts flipping ' +
+           'mid-round, which is where autopilot gets punished.'],
+    howto:['+3 for the right swatch, −1 for a wrong one or running out of time',
+           'Watch the banner: TAP THE INK or TAP THE WORD',
+           'The clock per answer tightens every round · 4 minutes total'],
+    session:240,
+    levelTime:null,
+    pointsRight:3, pointsWrong:1, scoreFull:80,
+    nextDelay:600,
+    buildLevel:buildLevel
+  });
+})();
+</script>
+</body>
+</html>

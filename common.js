@@ -431,30 +431,40 @@ window.CG = (function () {
       el: el, shuffle: shuffle, pick: pick, randInt: randInt,
       beep: beep, sfx: sfx, applause: applause, confetti: confetti, grad: grad, shade: shade,
 
+      /* score one answer. Games whose level is a single question use right()
+         and wrong(), which also move the level on; games that run a stream of
+         trials inside one level use tally() and advance when they are ready. */
+      tally: function (delta, msg){
+        var good = delta > 0;
+        S.attempts++;
+        if (good){
+          S.right++;
+          S.streak++;
+          S.bestStreak = Math.max(S.bestStreak, S.streak);
+        } else {
+          S.wrong++;
+          S.streak = 0;
+        }
+        setScore(S.score + delta);
+        flash(msg || (good ? '+' + delta : '−' + Math.abs(delta)), good);
+        showStreak();
+        if (good){
+          if (S.streak >= 3){ sfx('streak'); confetti(34); } else { sfx('correct'); confetti(16); }
+        } else {
+          sfx('wrong');
+        }
+      },
       right: function (msg, points){
         if (S.locked) return;
         S.locked = true;
-        S.attempts++; S.right++;
-        S.streak++;
-        S.bestStreak = Math.max(S.bestStreak, S.streak);
-        var gain = points === undefined ? cfg.pointsRight : points;
-        setScore(S.score + gain);
-        flash(msg || ('+' + gain), true);
-        showStreak();
-        if (S.streak >= 3){ sfx('streak'); confetti(34); } else { sfx('correct'); confetti(16); }
+        api.tally(points === undefined ? cfg.pointsRight : points, msg);
         stopLevelClock();
         api.after(cfg.nextDelay || 700, api.nextLevel);
       },
       wrong: function (msg, points){
         if (S.locked) return;
         S.locked = true;
-        S.attempts++; S.wrong++;
-        S.streak = 0;
-        showStreak();
-        var loss = points === undefined ? cfg.pointsWrong : points;
-        setScore(S.score - loss);
-        flash(msg || ('−' + loss), false);
-        sfx('wrong');
+        api.tally(-(points === undefined ? cfg.pointsWrong : points), msg);
         stopLevelClock();
         api.after(cfg.nextDelay || 700, api.nextLevel);
       },
