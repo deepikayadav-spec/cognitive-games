@@ -1,6 +1,6 @@
 # Cognitive Ability Games
 
-Five aptitude-style cognitive drills, in the formats placement tests actually use. Every game is a
+Seven aptitude-style cognitive drills, in the formats placement tests actually use. Every game is a
 plain HTML page — no build step, no framework, no server. Open `index.html` and play.
 
 | Game | What it trains | Task | Scoring |
