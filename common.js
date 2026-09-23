@@ -54,7 +54,11 @@ window.CG = (function () {
         master.connect(warm);
         warm.connect(actx.destination);
       }
-      if (actx.state === 'suspended') actx.resume();
+      if (actx.state === 'suspended' && actx.resume){
+        // a rejected resume (no gesture yet) must not surface as an unhandled rejection
+        var r = actx.resume();
+        if (r && r.catch) r.catch(function (){});
+      }
       return actx;
     } catch (e){ return null; }
   }
@@ -93,6 +97,79 @@ window.CG = (function () {
     });
   }
 
+
+  /* ---------- applause ----------
+     One clap is a 30-60ms burst of band-passed noise. A room full of people is
+     a few dozen of those scattered across half a second, with a soft noise
+     swell underneath for the body of the crowd. */
+  var noiseBuf = null;
+  function noise(ctx){
+    if (noiseBuf) return noiseBuf;
+    var len = Math.floor(ctx.sampleRate * 1.2);
+    noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
+    var d = noiseBuf.getChannelData(0);
+    for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    return noiseBuf;
+  }
+
+  function clap(ctx, at, peak){
+    var src = ctx.createBufferSource();
+    src.buffer = noise(ctx);
+    src.playbackRate.value = 0.85 + Math.random() * 0.4;
+
+    var bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 1100 + Math.random() * 1500;   /* the crack of a palm */
+    bp.Q.value = 0.7 + Math.random() * 1.1;
+
+    var hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 600;
+
+    var g = ctx.createGain();
+    var dur = 0.03 + Math.random() * 0.04;
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(peak, at + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+
+    src.connect(bp); bp.connect(hp); hp.connect(g); g.connect(master);
+    src.start(at);
+    src.stop(at + dur + 0.02);
+  }
+
+  /* size: 1 a small ripple, 2 a proper round, 3 the whole room */
+  function applause(size){
+    var ctx = audio();
+    if (!ctx) return;
+    var t0 = ctx.currentTime + 0.02;
+    var count = [14, 26, 44][Math.min(size, 3) - 1] || 20;
+    var spread = [0.45, 0.62, 0.85][Math.min(size, 3) - 1] || 0.5;
+    var peak = [0.16, 0.22, 0.3][Math.min(size, 3) - 1] || 0.18;
+
+    for (var i = 0; i < count; i++){
+      /* front-loaded, the way a crowd starts together then scatters */
+      var when = t0 + Math.pow(Math.random(), 1.7) * spread;
+      clap(ctx, when, peak * (0.55 + Math.random() * 0.75));
+    }
+
+    /* the body of the crowd underneath the individual claps */
+    var body = ctx.createBufferSource();
+    body.buffer = noise(ctx);
+    body.loop = true;
+    var bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 1500;
+    bp.Q.value = 0.5;
+    var g = ctx.createGain();
+    var dur = spread + 0.35;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(peak * 0.42, t0 + 0.09);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    body.connect(bp); bp.connect(g); g.connect(master);
+    body.start(t0);
+    body.stop(t0 + dur + 0.05);
+  }
+
   /* the cues the games actually use */
   var SFX = {
     tap:    function (){ voice({freq:300, type:'square', dur:0.05, peak:0.16}); },
@@ -100,11 +177,13 @@ window.CG = (function () {
                          voice({freq:960, type:'sine', dur:0.07, peak:0.14, delay:0.02}); },
     move:   function (){ voice({freq:420, type:'sine', dur:0.08, peak:0.26, to:520}); },
     blocked:function (){ voice({freq:150, type:'square', dur:0.07, peak:0.2, to:110}); },
-    correct:function (){ chord([523.25, 659.25, 783.99], {gap:0.055, dur:0.26, peak:0.45});
-                         voice({freq:1567, type:'sine', dur:0.2, peak:0.1, delay:0.14}); },
+    correct:function (){ chord([523.25, 659.25, 783.99], {gap:0.055, dur:0.26, peak:0.4});
+                         voice({freq:1567, type:'sine', dur:0.2, peak:0.1, delay:0.14});
+                         applause(1); },
     streak: function (){ chord([659.25, 830.61, 987.77, 1318.5],
                                {gap:0.055, dur:0.3, peak:0.5, type:'triangle'});
-                         voice({freq:2093, type:'sine', dur:0.34, peak:0.09, delay:0.2}); },
+                         voice({freq:2093, type:'sine', dur:0.34, peak:0.09, delay:0.2});
+                         applause(2); },
     wrong:  function (){ voice({freq:196, type:'sawtooth', dur:0.26, peak:0.32, to:110});
                          voice({freq:190, type:'square', dur:0.2, peak:0.1, detune:18}); },
     levelUp:function (){ chord([392, 523.25, 659.25, 1046.5], {gap:0.045, dur:0.24, peak:0.38}); },
@@ -113,7 +192,9 @@ window.CG = (function () {
     over:   function (){ chord([523.25, 392, 311.13, 261.63], {gap:0.12, dur:0.5, peak:0.4,
                                type:'triangle'}); },
     win:    function (){ chord([523.25, 659.25, 783.99, 1046.5, 1318.5],
-                               {gap:0.08, dur:0.44, peak:0.45}); }
+                               {gap:0.08, dur:0.44, peak:0.45});
+                         applause(3); },
+    clap:   function (){ applause(1); }
   };
   function sfx(name){ if (SFX[name]) SFX[name](); }
 
@@ -341,7 +422,7 @@ window.CG = (function () {
       score: function (){ return S.score; },
       board: board,
       el: el, shuffle: shuffle, pick: pick, randInt: randInt,
-      beep: beep, sfx: sfx, confetti: confetti, grad: grad, shade: shade,
+      beep: beep, sfx: sfx, applause: applause, confetti: confetti, grad: grad, shade: shade,
 
       right: function (msg, points){
         if (S.locked) return;
@@ -503,7 +584,7 @@ window.CG = (function () {
 
   return {
     create:create, el:el, shuffle:shuffle, pick:pick, randInt:randInt,
-    beep:beep, chime:chime, sfx:sfx, setMuted:setMuted, isMuted:isMuted,
+    beep:beep, chime:chime, sfx:sfx, applause:applause, setMuted:setMuted, isMuted:isMuted,
     shade:shade, grad:grad,
     confetti:confetti, streakLine:streakLine, reduced:reduced
   };
