@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Leaderboard</title>
+<meta name="description" content="Overall and per-game rankings for the NIAT cognitive ability games.">
+<meta name="theme-color" content="#190508">
+<link rel="icon" href="niat-logo.png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<style>
+  html,body{overflow:auto}
+  body{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
+  .page{max-width:840px; margin:0 auto; padding-inline:16px}
+
+  header{text-align:center; padding-top:calc(26px + env(safe-area-inset-top,0px))}
+  header img{width:72px; height:72px; border-radius:16px; display:block; margin:0 auto 14px;
+    box-shadow:0 8px 0 rgba(0,0,0,.4), 0 20px 40px rgba(148,26,27,.4)}
+  h1{margin:0; font-size:clamp(30px,7vw,52px); font-weight:800; letter-spacing:-.03em;
+    background:var(--grad-amber); -webkit-background-clip:text; background-clip:text; color:transparent}
+  header p{margin:10px auto 0; max-width:52ch; color:var(--ink-2); font-size:14.5px; line-height:1.6}
+
+  .who{display:flex; gap:9px; justify-content:center; align-items:center; margin-top:18px; flex-wrap:wrap}
+  .who input{
+    font:inherit; font-size:15px; font-weight:700; color:var(--ink); text-align:center;
+    background:var(--glass); border:1px solid var(--stroke); border-radius:99px;
+    padding:11px 18px; width:min(230px,60vw);
+  }
+  .who input:focus{outline:2px solid var(--amber); outline-offset:1px}
+  .who button{
+    border:0; border-radius:99px; color:#FBF5E2; font-weight:800; font-size:14px; padding:12px 24px;
+    background:var(--grad-brand); box-shadow:0 5px 0 var(--brand-deep);
+  }
+  .who button:active{transform:translateY(3px); box-shadow:0 1px 0 var(--brand-deep)}
+
+  .tabs{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:26px 0 18px}
+  .tab{
+    border:1px solid var(--stroke); background:var(--glass); color:var(--ink-2);
+    border-radius:99px; padding:9px 17px; font-size:13.5px; font-weight:700;
+    box-shadow:0 4px 0 rgba(0,0,0,.35);
+  }
+  .tab:active{transform:translateY(3px); box-shadow:0 1px 0 rgba(0,0,0,.35)}
+  .tab.on{background:var(--grad-amber); color:#3A1006; border-color:transparent;
+    box-shadow:0 4px 0 #9A8A3F}
+
+  .board{
+    border:1px solid var(--stroke); border-radius:20px; overflow:hidden;
+    background:linear-gradient(165deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
+  }
+  .row{
+    display:grid; grid-template-columns:52px minmax(0,1fr) auto; gap:12px; align-items:center;
+    padding:13px 16px; border-bottom:1px solid rgba(245,239,187,.09);
+  }
+  .row:last-child{border-bottom:0}
+  .row.head{font-size:11.5px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--muted); background:rgba(0,0,0,.2)}
+  .row.me{background:rgba(245,239,187,.1)}
+  .rank{font-weight:800; font-variant-numeric:tabular-nums; color:var(--ink-2)}
+  .rank.g1{color:#FFD76A} .rank.g2{color:#D8D8D8} .rank.g3{color:#E0925A}
+  .who-name{font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .who-name span{color:var(--muted); font-weight:600; font-size:12.5px; margin-left:8px}
+  .pts{font-weight:800; font-variant-numeric:tabular-nums; font-size:17px; color:var(--amber)}
+  .empty{padding:40px 20px; text-align:center; color:var(--muted); font-size:14px; line-height:1.7}
+  .empty b{color:var(--ink-2)}
+
+  .foot{display:flex; gap:10px; justify-content:center; margin-top:22px; flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<a class="backlink" href="index.html">← all games</a>
+
+<div class="page">
+  <header>
+    <img src="niat-logo.png" alt="NIAT">
+    <h1>Leaderboard</h1>
+    <p>Your best run in each game counts. The overall board adds those bests together, so playing
+      everything beats grinding one.</p>
+    <div class="who">
+      <input id="name" type="text" maxlength="24" placeholder="your name" autocomplete="off">
+      <button id="save">Save name</button>
+    </div>
+  </header>
+
+  <div class="tabs" id="tabs"></div>
+  <div class="board" id="board"></div>
+
+  <div class="foot">
+    <a class="ghost" href="index.html">Play a game</a>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var GAMES = [
+    {id:'all',       name:'Overall'},
+    {id:'deductive', name:'Deductive'},
+    {id:'swith',     name:'Swith'},
+    {id:'grid',      name:'Grid'},
+    {id:'inductive', name:'Inductive'},
+    {id:'motion',    name:'Motion'},
+    {id:'echo',      name:'Echo'},
+    {id:'snap',      name:'Snap'}
+  ];
+
+  var KEY = 'niat.player';
+  var nameEl = document.getElementById('name');
+  var boardEl = document.getElementById('board');
+  var tabsEl = document.getElementById('tabs');
+  var current = 'all';
+
+  function me(){
+    try { return localStorage.getItem(KEY) || ''; } catch (e){ return ''; }
+  }
+  nameEl.value = me();
+
+  document.getElementById('save').addEventListener('click', function (){
+    var v = nameEl.value.replace(/\s+/g, ' ').trim().slice(0, 24);
+    try { localStorage.setItem(KEY, v); } catch (e){ /* private mode */ }
+    nameEl.value = v;
+    render(current);
+  });
+
+  GAMES.forEach(function (g){
+    var b = document.createElement('button');
+    b.className = 'tab' + (g.id === 'all' ? ' on' : '');
+    b.textContent = g.name;
+    b.addEventListener('click', function (){
+      current = g.id;
+      Array.prototype.forEach.call(tabsEl.children, function (n){ n.classList.remove('on'); });
+      b.classList.add('on');
+      render(g.id);
+    });
+    tabsEl.appendChild(b);
+  });
+
+  function row(cls, rank, who, note, pts){
+    return '<div class="row ' + cls + '">' +
+             '<div class="rank ' + (rank === 1 ? 'g1' : rank === 2 ? 'g2' : rank === 3 ? 'g3' : '') + '">' +
+               (rank ? (rank <= 3 ? ['🥇','🥈','🥉'][rank - 1] : rank) : '#') +
+             '</div>' +
+             '<div class="who-name">' + who + (note ? '<span>' + note + '</span>' : '') + '</div>' +
+             '<div class="pts">' + pts + '</div>' +
+           '</div>';
+  }
+
+  function escape(s){
+    return String(s).replace(/[&<>"]/g, function (c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+    });
+  }
+
+  function render(game){
+    boardEl.innerHTML = '<div class="empty">loading…</div>';
+    fetch('/api/scores?game=' + encodeURIComponent(game))
+      .then(function (r){
+        if (!r.ok) throw new Error('http ' + r.status);
+        return r.json();
+      })
+      .then(function (data){
+        var rows = data.rows || [];
+        if (!rows.length){
+          boardEl.innerHTML = '<div class="empty">Nothing here yet.<br>' +
+            '<b>Play a run and you will be first on the board.</b></div>';
+          return;
+        }
+        var mine = me().toLowerCase();
+        var html = row('head', 0, 'Player', '', 'Score').replace('>#<', '></');
+        rows.forEach(function (r, i){
+          var note = game === 'all'
+            ? r.games + (r.games === 1 ? ' game' : ' games')
+            : 'level ' + (r.level || 1);
+          html += row(r.player.toLowerCase() === mine ? 'me' : '', i + 1,
+                      escape(r.player), note, r.score);
+        });
+        boardEl.innerHTML = html;
+      })
+      .catch(function (){
+        boardEl.innerHTML = '<div class="empty">The leaderboard is offline right now.<br>' +
+          '<b>Your scores are still saved on this device</b> and will post next time you are online.</div>';
+      });
+  }
+
+  render('all');
+})();
+</script>
+</body>
+</html>

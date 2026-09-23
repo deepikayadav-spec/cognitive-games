@@ -1,0 +1,8 @@
+{
+  "name": "cognitive-games",
+  "private": true,
+  "description": "Serverless leaderboard for the NIAT cognitive ability games. The site itself is plain HTML/CSS/JS and needs no build.",
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.2"
+  }
+}

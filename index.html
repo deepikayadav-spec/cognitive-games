@@ -60,6 +60,15 @@
   .sub{margin:14px auto 0; max-width:54ch; color:var(--ink-2); font-size:clamp(14px,2.2vw,17px);
     line-height:1.6}
   .facts{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:18px}
+  .boardlink{
+    display:inline-flex; align-items:center; gap:8px; margin-top:20px; text-decoration:none;
+    font-size:15px; font-weight:800; color:#3A1006; padding:12px 26px; border-radius:99px;
+    background:var(--grad-amber);
+    box-shadow:0 5px 0 #9A8A3F, 0 14px 26px rgba(245,239,187,.25),
+      inset 0 1px 0 rgba(255,255,255,.5);
+    transition:transform .14s ease;
+  }
+  .boardlink:active{transform:translateY(3px); box-shadow:0 2px 0 #9A8A3F}
   .fact{
     font-size:12.5px; font-weight:600; color:var(--ink-2); padding:7px 14px; border-radius:99px;
     background:var(--glass); border:1px solid var(--stroke);
@@ -160,6 +169,7 @@
       <span class="fact">works <b>offline</b></span>
       <span class="fact">built for <b>phones</b></span>
     </div>
+    <a class="boardlink" href="leaderboard.html">🏆 Leaderboard</a>
   </header>
 
   <main class="grid" id="grid"></main>

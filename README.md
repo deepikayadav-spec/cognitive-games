@@ -42,6 +42,24 @@ Boards are generated at random and then checked with a breadth-first solver befo
 so every board is solvable, the move limit is always the true optimum plus two, and any board the
 ball could reach the hole on without shifting a block is thrown away.
 
+## Leaderboard
+
+`leaderboard.html` shows an overall board plus one per game. A run is posted when the four minutes
+are up; each player's BEST run per game is what ranks, and the overall total is the sum of those
+bests, so breadth beats grinding a single game.
+
+    api/scores.js     GET  ?game=<slug>|all   top 50
+                      POST {player, game, score, level}
+    package.json      the one dependency the API needs
+
+Storage is Neon Postgres, provisioned through the Vercel Marketplace, read from `DATABASE_URL`. The
+table is created on first use — there is no migration step. A player is a display name kept in that
+browser's localStorage; there are no accounts, so treat the board as a friendly ranking rather than
+an audited record.
+
+If the API is unreachable the games keep working and the run is queued in localStorage, then posted
+on the next finish.
+
 ## Feedback
 
 Every game carries a feedback button: a star rating, an open comment and an "anything to add or

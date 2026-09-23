@@ -233,6 +233,62 @@ window.CG = (function () {
     };
   }
 
+
+  /* ---------- leaderboard ----------
+     A run is posted when the clock runs out. The name lives in this browser;
+     if the network or the API is down the run is kept locally and sent on the
+     next finish, so an offline session never loses a score.                  */
+  var NAME_KEY = 'niat.player', QUEUE_KEY = 'niat.pending';
+
+  function playerName(){
+    try { return localStorage.getItem(NAME_KEY) || ''; } catch (e){ return ''; }
+  }
+  function setPlayerName(v){
+    v = String(v || '').replace(/\s+/g, ' ').trim().slice(0, 24);
+    try { localStorage.setItem(NAME_KEY, v); } catch (e){ /* private mode */ }
+    return v;
+  }
+  function queued(){
+    try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); } catch (e){ return []; }
+  }
+  function queue(list){
+    try { localStorage.setItem(QUEUE_KEY, JSON.stringify(list.slice(-40))); } catch (e){ /* full */ }
+  }
+
+  function postRun(run){
+    return fetch('/api/scores', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(run)
+    }).then(function (r){
+      if (!r.ok) throw new Error('http ' + r.status);
+      return r.json();
+    });
+  }
+
+  /* send anything stranded by an earlier offline finish */
+  function flush(){
+    var list = queued();
+    if (!list.length) return Promise.resolve();
+    queue([]);
+    return Promise.all(list.map(function (run){
+      return postRun(run).catch(function (){
+        var still = queued();
+        still.push(run);
+        queue(still);
+      });
+    }));
+  }
+
+  function submit(run){
+    return flush().then(function (){ return postRun(run); }).catch(function (e){
+      var list = queued();
+      list.push(run);
+      queue(list);
+      throw e;
+    });
+  }
+
   /* ---------- confetti ---------- */
   var CONF_COLOURS = ['#F5EFBB', '#C62B2C', '#5BD69A', '#DCC471', '#FFFFFF', '#941A1B'];
   function confetti(count, originX, originY){
@@ -361,14 +417,55 @@ window.CG = (function () {
         var row = el('div'); row.appendChild(el('span', null, r[0])); row.appendChild(r[1]);
         endStats.appendChild(row);
       });
+    var nameRow = el('div', 'share');
+    var nameLabel = el('span', null, 'Post this to the leaderboard as');
+    var nameInput = el('input');
+    nameInput.type = 'text';
+    nameInput.maxLength = 24;
+    nameInput.placeholder = 'your name';
+    nameInput.className = 'namebox';
+    var nameBtn = el('button', null, 'Post');
+    nameRow.appendChild(nameLabel); nameRow.appendChild(nameInput); nameRow.appendChild(nameBtn);
+
+    var rankRow = el('div', 'rankline');
+
     var shareRow = el('div', 'share');
     var shareText = el('span');
     var shareBtn = el('button', null, 'Copy');
     shareRow.appendChild(shareText); shareRow.appendChild(shareBtn);
     var btnAgain = el('button', 'play', 'Run it back');
+    var btnBoard = el('a', 'ghost', 'See the leaderboard');
+    btnBoard.href = 'leaderboard.html';
     var btnHub = el('a', 'ghost', 'Try another game');
     btnHub.href = 'index.html';
-    [endH, endSub, endStats, shareRow, btnAgain, btnHub].forEach(function (n){ endSheet.appendChild(n); });
+    [endH, endSub, endStats, nameRow, rankRow, shareRow, btnAgain, btnBoard, btnHub]
+      .forEach(function (n){ endSheet.appendChild(n); });
+
+    function post(){
+      var who = setPlayerName(nameInput.value);
+      if (!who){
+        rankRow.textContent = 'Type a name first.';
+        rankRow.className = 'rankline bad';
+        nameInput.focus();
+        return;
+      }
+      nameBtn.disabled = true;
+      rankRow.textContent = 'posting…';
+      rankRow.className = 'rankline';
+      submit({player:who, game:cfg.slug || cfg.name, score:S.score, level:S.level})
+        .then(function (r){
+          rankRow.innerHTML = r.rank
+            ? 'You are <b>#' + r.rank + '</b> on ' + cfg.name + ' with <b>' + r.best + '</b>'
+            : 'Posted.';
+          rankRow.className = 'rankline good';
+        })
+        .catch(function (){
+          rankRow.textContent = 'Offline — saved here and posted next time.';
+          rankRow.className = 'rankline bad';
+        });
+    }
+    nameBtn.addEventListener('click', post);
+    nameInput.addEventListener('keydown', function (e){ if (e.key === 'Enter') post(); });
     endEl.appendChild(endSheet);
 
     /* ---------- scoring ---------- */
@@ -548,6 +645,14 @@ window.CG = (function () {
       };
       sfx(S.score > 0 ? 'win' : 'over');
       if (S.score > 0) confetti(46);
+
+      nameInput.value = playerName();
+      nameBtn.disabled = false;
+      rankRow.textContent = '';
+      rankRow.className = 'rankline';
+      /* a known name posts itself; a new player is asked once */
+      if (playerName()) post();
+
       endEl.hidden = false;
     }
 
@@ -602,6 +707,7 @@ window.CG = (function () {
   return {
     create:create, el:el, shuffle:shuffle, pick:pick, randInt:randInt,
     beep:beep, chime:chime, sfx:sfx, applause:applause, setMuted:setMuted, isMuted:isMuted,
+    playerName:playerName, setPlayerName:setPlayerName, submitRun:submit,
     shade:shade, grad:grad,
     confetti:confetti, streakLine:streakLine, reduced:reduced
   };

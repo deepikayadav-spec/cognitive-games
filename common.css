@@ -265,6 +265,19 @@ button{font-family:inherit; cursor:pointer}
 /* shapes stop looking like flat stickers */
 .board svg{filter:drop-shadow(0 3px 5px rgba(0,0,0,.45))}
 
+.namebox{
+  font:inherit; font-size:14px; font-weight:700; color:var(--ink); text-align:center;
+  background:rgba(0,0,0,.28); border:1px solid var(--stroke); border-radius:99px;
+  padding:9px 14px; width:min(170px,42vw);
+}
+.namebox:focus{outline:2px solid var(--amber); outline-offset:1px}
+.rankline{
+  text-align:center; font-size:14px; font-weight:700; color:var(--ink-2); min-height:20px;
+}
+.rankline b{color:var(--amber); font-size:16px}
+.rankline.good{color:var(--ink)}
+.rankline.bad{color:var(--coral)}
+
 /* ---------------- motion preferences ---------------- */
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none !important; transition:none !important}

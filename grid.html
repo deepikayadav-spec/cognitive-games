@@ -234,7 +234,14 @@
       <div><span>Symmetry answers</span><b id="eSym">0 / 0</b></div>
       <div><span>Dots recalled</span><b id="eDots">0 / 0</b></div>
     </div>
-    <button class="play" id="btnAgain">Play again</button>
+    <div class="share">
+      <span>Post to the leaderboard as</span>
+      <input class="namebox" id="pname" type="text" maxlength="24" placeholder="your name">
+      <button id="ppost">Post</button>
+    </div>
+    <div class="rankline" id="prank"></div>
+    <button class="play" id="btnAgain">Run it back</button>
+    <a class="ghost" href="leaderboard.html">See the leaderboard</a>
   </div>
 </div>
 
@@ -581,7 +588,42 @@
       S.score >= 20 ? 'Solid' :
       S.score >= 0  ? 'Room to improve' : 'Guessing costs you';
     sfx(S.score > 0 ? 'win' : 'over');
+    postRun();
     show('endScreen', true);
+  }
+
+  /* ---------------- leaderboard ---------------- */
+  function postRun(){
+    if (!window.CG) return;
+    var input = document.getElementById('pname');
+    var line = document.getElementById('prank');
+    input.value = CG.playerName();
+    line.textContent = '';
+    line.className = 'rankline';
+    if (!input.value) return;                       // a new player posts by hand
+    send();
+  }
+  function send(){
+    var input = document.getElementById('pname');
+    var line = document.getElementById('prank');
+    var who = CG.setPlayerName(input.value);
+    if (!who){
+      line.textContent = 'Type a name first.';
+      line.className = 'rankline bad';
+      return;
+    }
+    line.textContent = 'posting…';
+    CG.submitRun({player:who, game:'grid', score:S.score, level:S.level})
+      .then(function (r){
+        line.innerHTML = r.rank
+          ? 'You are <b>#' + r.rank + '</b> on Grid Challenge with <b>' + r.best + '</b>'
+          : 'Posted.';
+        line.className = 'rankline good';
+      })
+      .catch(function (){
+        line.textContent = 'Offline — saved here and posted next time.';
+        line.className = 'rankline bad';
+      });
   }
 
   /* ---------------- screens ---------------- */
@@ -622,6 +664,10 @@
 
   document.getElementById('btnPlay').addEventListener('click', start);
   document.getElementById('btnAgain').addEventListener('click', start);
+  document.getElementById('ppost').addEventListener('click', send);
+  document.getElementById('pname').addEventListener('keydown', function (e){
+    if (e.key === 'Enter') send();
+  });
   document.getElementById('btnQuit').addEventListener('click', start);
   document.getElementById('btnResume').addEventListener('click', function (){ togglePause(false); });
   document.getElementById('btnPause').addEventListener('click', function (){ togglePause(); });
