@@ -50,6 +50,8 @@
   .beat i.miss{background:var(--coral)}
   .beat i.now{background:var(--amber); transform:scale(1.35)}
   .hintline{color:var(--muted); font-size:12.5px; font-weight:600; text-align:center}
+  /* the score flash sits high by default and would land on the rule pill */
+  .flash{top:2%}
   .verdict{
     min-height:22px; font-size:14px; font-weight:800; letter-spacing:.06em;
     text-transform:uppercase; opacity:0; transition:opacity .15s ease;
@@ -196,7 +198,7 @@
       }, ms));
     }
 
-    api.prompt('Tap the colour, not the word ⚡');
+    api.prompt('Read the banner — the rule flips ⚡');
     timers.push(setTimeout(next, 600));
 
     var obs = new MutationObserver(function (){
@@ -212,13 +214,14 @@
   CG.create({
     name:'Snap',
     tag:'Attention and impulse control',
-    prompt:'Tap the colour, not the word',
-    intro:['A colour name appears, printed in the wrong colour. The banner tells you which one ' +
-           'counts — the ink it is printed in, or the word itself.',
-           'Reading is automatic, so the word fights you. From level 3 the rule starts flipping ' +
-           'mid-round, which is where autopilot gets punished.'],
+    prompt:'Read the banner — the rule flips',
+    intro:['A colour name appears, printed in the wrong colour. The banner above it is the rule: ' +
+           'TAP THE INK means the colour it is printed in, TAP THE WORD means what it says.',
+           'Reading is automatic, so the word fights you. From level 2 the banner starts ' +
+           'alternating, and from level 4 it changes at random every single trial — which is ' +
+           'where autopilot gets punished.'],
     howto:['+3 for the right swatch, −1 for a wrong one or running out of time',
-           'Watch the banner: TAP THE INK or TAP THE WORD',
+           'The banner is the only thing that decides the answer — check it every trial',
            '4 swatches become 6, and 2.4s an answer becomes 0.65s'],
     session:240,
     levelTime:null,
