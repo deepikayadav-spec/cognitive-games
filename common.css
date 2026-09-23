@@ -1,29 +1,28 @@
 /* ============================================================
    Shared chrome for the cognitive ability games.
-   Dark-first, built on the NxtWave palette:
-   #1565D8 blue · #183B56 navy · #FFD15C amber · #F3705A coral
-   #15803D green · #475569 / #64748B / #D1D8DD slates
+   Dark-first, built on NIAT's own crest:
+   crimson #941A1B · cream #F5EFBB, both sampled from the logo
    ============================================================ */
 :root{
   /* surfaces */
-  --bg:#0B1A2C; --bg-2:#12293D; --navy:#183B56; --navy-2:#12293D;
-  --glass:rgba(255,255,255,.055); --glass-2:rgba(255,255,255,.09);
-  --stroke:rgba(255,255,255,.12); --stroke-2:rgba(255,255,255,.2);
+  --bg:#190508; --bg-2:#2A0B10; --navy:#3A1014; --navy-2:#2A0B10;
+  --glass:rgba(245,239,187,.06); --glass-2:rgba(245,239,187,.11);
+  --stroke:rgba(245,239,187,.16); --stroke-2:rgba(245,239,187,.28);
 
   /* brand */
-  --brand:#1565D8; --brand-lite:#4B8DF8; --brand-deep:#0E47A1;
-  --amber:#FFD15C; --amber-deep:#E8AE1F;
-  --coral:#F3705A; --green:#15803D; --green-lite:#3DD68C;
-  --violet:#9B7BFF;
+  --brand:#941A1B; --brand-lite:#C62B2C; --brand-deep:#5E0F10;
+  --amber:#F5EFBB; --amber-deep:#DCCB74;          /* the crest's cream */
+  --coral:#FF7A63; --green:#2E9E63; --green-lite:#5BD69A;
+  --violet:#D9A441;
 
   /* text */
-  --ink:#EAF2FC; --ink-2:#A9BDD6; --muted:#7D93AE; --line:#D1D8DD;
+  --ink:#FBF5E2; --ink-2:#D9C7A8; --muted:#A98D74; --line:#F5EFBB;
 
   /* gradients + glows */
-  --grad-brand:linear-gradient(135deg,#1565D8 0%,#4B8DF8 100%);
-  --grad-amber:linear-gradient(135deg,#FFD15C 0%,#FFB020 100%);
-  --glow-brand:0 8px 30px rgba(21,101,216,.45);
-  --glow-amber:0 8px 26px rgba(255,209,92,.35);
+  --grad-brand:linear-gradient(135deg,#C62B2C 0%,#941A1B 100%);
+  --grad-amber:linear-gradient(135deg,#F7F2C6 0%,#DCC471 100%);
+  --glow-brand:0 8px 30px rgba(198,43,44,.45);
+  --glow-amber:0 8px 26px rgba(245,239,187,.28);
 
   --r:18px; --r-sm:12px;
   --ff:'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif;
@@ -33,9 +32,9 @@ html,body{height:100%; margin:0}
 body{
   background:var(--bg); color:var(--ink); font-family:var(--ff); overflow:hidden;
   background-image:
-    radial-gradient(760px 420px at 12% -8%, rgba(21,101,216,.34), transparent 62%),
-    radial-gradient(620px 380px at 92% 4%, rgba(255,209,92,.14), transparent 60%),
-    radial-gradient(700px 500px at 60% 108%, rgba(243,112,90,.12), transparent 62%);
+    radial-gradient(760px 420px at 12% -8%, rgba(148,26,27,.55), transparent 62%),
+    radial-gradient(620px 380px at 92% 4%, rgba(245,239,187,.1), transparent 60%),
+    radial-gradient(700px 500px at 60% 108%, rgba(198,43,44,.28), transparent 62%);
   -webkit-font-smoothing:antialiased;
 }
 button{font-family:inherit; cursor:pointer}
@@ -47,7 +46,7 @@ button{font-family:inherit; cursor:pointer}
 .bar{
   display:flex; align-items:center; gap:9px; flex:none;
   padding:10px 14px; margin:10px 12px 0; border-radius:var(--r);
-  background:rgba(12,28,46,.72); border:1px solid var(--stroke);
+  background:rgba(42,11,16,.8); border:1px solid var(--stroke);
   backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
 }
 .bar .ic{
@@ -81,7 +80,7 @@ button{font-family:inherit; cursor:pointer}
 .bar .name{color:var(--ink-2); font-weight:700; font-size:15px; white-space:nowrap}
 .streak{
   display:none; align-items:center; gap:5px; white-space:nowrap;
-  font-weight:800; font-size:13px; color:#2A1200; padding:7px 13px; border-radius:99px;
+  font-weight:800; font-size:13px; color:#3A1006; padding:7px 13px; border-radius:99px;
   background:var(--grad-amber); box-shadow:var(--glow-amber);
 }
 .streak.on{display:inline-flex; animation:popin .32s cubic-bezier(.2,1.4,.4,1)}
@@ -136,14 +135,14 @@ button{font-family:inherit; cursor:pointer}
 /* ---------------- overlays ---------------- */
 .overlay{
   position:fixed; inset:0; z-index:20; display:grid; place-items:center; padding:18px;
-  background:rgba(6,14,24,.78); overflow:auto;
+  background:rgba(14,4,7,.82); overflow:auto;
   backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
 }
 .overlay[hidden]{display:none}
 .sheet{
   width:min(760px,100%); border-radius:26px; padding:28px; position:relative;
   display:flex; flex-direction:column; gap:14px;
-  background:linear-gradient(165deg,#1B3A58 0%,#102337 100%);
+  background:linear-gradient(165deg,#3A1014 0%,#1E070B 100%);
   border:1px solid var(--stroke-2);
   box-shadow:0 30px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.14);
   animation:sheetIn .34s cubic-bezier(.2,1.1,.35,1);
@@ -160,7 +159,7 @@ button{font-family:inherit; cursor:pointer}
   background:var(--glass); border:1px solid var(--stroke); color:var(--amber);
 }
 .sheet p{margin:0; font-size:clamp(14px,1.85vw,16.5px); line-height:1.6; color:var(--ink-2)}
-.sheet h2{margin:8px 0 0; text-align:center; color:var(--ink); font-size:clamp(18px,3vw,24px);
+.sheet h2{margin:8px 0 0; text-align:center; color:var(--amber); font-size:clamp(18px,3vw,24px);
   font-weight:800; letter-spacing:-.01em}
 .sheet ul{margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:8px}
 .sheet ul li{
@@ -196,7 +195,7 @@ button{font-family:inherit; cursor:pointer}
 .share{
   display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
   padding:13px 15px; border-radius:var(--r-sm); font-size:13.5px; color:var(--ink-2);
-  background:rgba(21,101,216,.16); border:1px dashed rgba(75,141,248,.5);
+  background:rgba(148,26,27,.28); border:1px dashed rgba(198,43,44,.6);
 }
 .share b{color:var(--ink); font-weight:700}
 .share button{
@@ -207,7 +206,7 @@ button{font-family:inherit; cursor:pointer}
 
 .backlink{
   position:fixed; left:14px; bottom:14px; z-index:9; text-decoration:none;
-  background:rgba(12,28,46,.8); border:1px solid var(--stroke); color:var(--ink-2);
+  background:rgba(42,11,16,.85); border:1px solid var(--stroke); color:var(--ink-2);
   font-size:12.5px; font-weight:700; padding:9px 15px; border-radius:99px;
   backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
   transition:transform .14s ease, color .15s ease;
@@ -215,6 +214,16 @@ button{font-family:inherit; cursor:pointer}
 .backlink:hover{color:var(--ink)}
 .backlink:active{transform:scale(.94)}
 
+
+.crest{
+  width:34px; height:34px; border-radius:9px; flex:none; display:block;
+  box-shadow:0 3px 0 rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.25);
+}
+.sheet .crest{
+  width:64px; height:64px; border-radius:14px; align-self:center; margin-bottom:2px;
+  box-shadow:0 6px 0 rgba(0,0,0,.45), 0 14px 30px rgba(0,0,0,.5);
+}
+@media (max-width:560px){ .crest{width:30px; height:30px} }
 
 /* ---------------- depth pass ----------------
    Objects are lit from above: a bright inner top edge, a darker inner bottom,
@@ -228,12 +237,12 @@ button{font-family:inherit; cursor:pointer}
 }
 
 .play{
-  box-shadow:0 7px 0 #0B3C8C, 0 16px 30px rgba(21,101,216,.45),
-             inset 0 2px 0 rgba(255,255,255,.4), inset 0 -3px 0 rgba(0,0,0,.2);
+  box-shadow:0 7px 0 #5E0F10, 0 16px 30px rgba(148,26,27,.5),
+             inset 0 2px 0 rgba(255,255,255,.32), inset 0 -3px 0 rgba(0,0,0,.24);
   transform:translateY(0);
 }
-.play:active{transform:translateY(5px); box-shadow:0 2px 0 #0B3C8C, 0 6px 14px rgba(21,101,216,.4),
-  inset 0 2px 0 rgba(255,255,255,.35)}
+.play:active{transform:translateY(5px); box-shadow:0 2px 0 #5E0F10, 0 6px 14px rgba(148,26,27,.45),
+  inset 0 2px 0 rgba(255,255,255,.3)}
 .ghost{box-shadow:0 4px 0 rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.2)}
 .ghost:active{transform:translateY(3px); box-shadow:0 1px 0 rgba(0,0,0,.35)}
 
@@ -241,16 +250,16 @@ button{font-family:inherit; cursor:pointer}
 .bar .ic, .bar .lvl, .clock{box-shadow:var(--lift-1)}
 .bar .ic:active{transform:translateY(2px); box-shadow:inset 0 2px 5px rgba(0,0,0,.4)}
 .scorebar{box-shadow:inset 0 3px 7px rgba(0,0,0,.45), inset 0 -1px 0 rgba(255,255,255,.1)}
-.scorebar .fill{box-shadow:inset 0 2px 0 rgba(255,255,255,.5), 0 0 18px rgba(255,176,32,.55)}
-.streak.on{box-shadow:0 5px 0 #A9761B, 0 12px 22px rgba(255,209,92,.4),
-  inset 0 2px 0 rgba(255,255,255,.5)}
-.session i{box-shadow:0 0 14px rgba(75,141,248,.7)}
+.scorebar .fill{box-shadow:inset 0 2px 0 rgba(255,255,255,.55), 0 0 18px rgba(245,239,187,.5)}
+.streak.on{box-shadow:0 5px 0 #9A8A3F, 0 12px 22px rgba(245,239,187,.35),
+  inset 0 2px 0 rgba(255,255,255,.55)}
+.session i{box-shadow:0 0 14px rgba(198,43,44,.8)}
 
 .sheet .sub{box-shadow:var(--lift-1)}
 .sheet ul li{box-shadow:inset 0 1px 0 rgba(255,255,255,.14), 0 4px 10px rgba(0,0,0,.25)}
 .results div{box-shadow:inset 0 1px 0 rgba(255,255,255,.14), 0 4px 10px rgba(0,0,0,.25)}
-.share button{box-shadow:0 4px 0 #0B3C8C, inset 0 1px 0 rgba(255,255,255,.35)}
-.share button:active{transform:translateY(3px); box-shadow:0 1px 0 #0B3C8C}
+.share button{box-shadow:0 4px 0 #5E0F10, inset 0 1px 0 rgba(255,255,255,.3)}
+.share button:active{transform:translateY(3px); box-shadow:0 1px 0 #5E0F10}
 .backlink{box-shadow:var(--lift-1)}
 
 /* shapes stop looking like flat stickers */

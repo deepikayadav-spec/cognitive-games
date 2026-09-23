@@ -4,13 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Swith Challenge</title>
-<meta name="theme-color" content="#12283F">
+<meta name="theme-color" content="#190508">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
+<link rel="icon" href="niat-logo.png">
 <link rel="stylesheet" href="common.css">
 <style>
   .board{
-    background:radial-gradient(circle at 50% 38%, rgba(21,101,216,.4) 0%, rgba(11,26,44,0) 70%);
+    background:radial-gradient(circle at 50% 38%, rgba(148,26,27,.5) 0%, rgba(25,5,8,0) 70%);
     border-radius:22px;
   }
   .wrap{display:flex; flex-direction:column; align-items:center; gap:clamp(6px,1.6vh,16px); padding:8px}
@@ -46,8 +47,8 @@
 
 /* ---------- feedback widget ---------- */
 .nfb-fab,.nfb-back{
-  --nfb-surface:#FFFFFF; --nfb-line:#D6DAE0; --nfb-text:#1B2430; --nfb-dim:#6C7885;
-  --nfb-accent:#1565D8; --nfb-accent-ink:#FFFFFF; --nfb-star:#1565D8;
+  --nfb-surface:#FFFBF0; --nfb-line:#E6DCC2; --nfb-text:#2A0B10; --nfb-dim:#7A6A55;
+  --nfb-accent:#941A1B; --nfb-accent-ink:#F5EFBB; --nfb-star:#DCC471;
   --nfb-radius:8px; --nfb-font:'Poppins',system-ui,sans-serif; --nfb-head:'Poppins',system-ui,sans-serif;
 }
 .nfb-fab{
@@ -140,7 +141,7 @@
 (function () {
   "use strict";
 
-  var GREEN = '#FFD15C';
+  var GREEN = '#F5EFBB';
   var SHAPES = ['circle','square','triangle','cross','percent','times'];
 
   function shapeSVG(kind){

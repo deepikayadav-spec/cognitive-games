@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Grid Challenge</title>
 <meta name="description" content="Power of attention and memory — hold three dot positions while answering symmetry questions in between, then recall them in order.">
-<meta name="theme-color" content="#0B1A2C">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%9F%A0</text></svg>">
+<meta name="theme-color" content="#190508">
+<link rel="icon" href="niat-logo.png">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap">
 <link rel="stylesheet" href="common.css">
 <script src="common.js"></script>
 <style>
-:root{ --amber:#FFD15C; }
+:root{ --amber:#F5EFBB; }
 
 /* ---------- board: dots, patterns, answers ---------- */
 .timerbar{flex:none; height:6px; background:rgba(255,255,255,.1); margin:0 14px;
@@ -26,15 +26,15 @@
   backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px)}
 
 .dot{position:absolute; border-radius:50%; transform:translate(-50%,-50%);
-  background:radial-gradient(circle at 34% 28%, rgba(255,255,255,.75), rgba(190,208,228,.35) 55%, rgba(120,140,165,.28));
+  background:radial-gradient(circle at 34% 28%, rgba(255,250,235,.8), rgba(226,214,175,.4) 55%, rgba(150,125,100,.3));
   box-shadow:inset 0 -3px 6px rgba(0,0,0,.35), 0 4px 10px rgba(0,0,0,.4);
   transition:background .15s, transform .15s, box-shadow .15s}
-.dot.lit{background:radial-gradient(circle at 34% 28%, #A8FFD4, #3DD68C 60%, #0F8F56);
-  box-shadow:0 0 34px rgba(61,214,140,.75), inset 0 -3px 6px rgba(0,0,0,.3);
+.dot.lit{background:radial-gradient(circle at 34% 28%, #B7F5D3, #5BD69A 60%, #1E7A4C);
+  box-shadow:0 0 34px rgba(91,214,154,.75), inset 0 -3px 6px rgba(0,0,0,.3);
   transform:translate(-50%,-50%) scale(1.16)}
-.dot.right{background:radial-gradient(circle at 34% 28%, #A8FFD4, #3DD68C 60%, #0F8F56);
-  box-shadow:0 0 24px rgba(61,214,140,.6), inset 0 -3px 6px rgba(0,0,0,.3)}
-.dot.wrong{background:radial-gradient(circle at 34% 28%, #FFB3A4, #F3705A 60%, #B93A26);
+.dot.right{background:radial-gradient(circle at 34% 28%, #B7F5D3, #5BD69A 60%, #1E7A4C);
+  box-shadow:0 0 24px rgba(91,214,154,.6), inset 0 -3px 6px rgba(0,0,0,.3)}
+.dot.wrong{background:radial-gradient(circle at 34% 28%, #FFB3A4, #FF7A63 60%, #94100F);
   box-shadow:0 0 24px rgba(243,112,90,.55), inset 0 -3px 6px rgba(0,0,0,.3)}
 .dot.click{cursor:pointer}
 .dot.click:hover{background:rgba(255,255,255,.44); transform:translate(-50%,-50%) scale(1.14)}
@@ -54,7 +54,7 @@
 .pat span{display:grid; place-items:center}
 .pat i{display:block; background:var(--ink)}
 .pat i.on{width:20px; height:20px; border-radius:5px;
-  background:linear-gradient(180deg,#FFFFFF,#C2D2E4);
+  background:linear-gradient(180deg,#FFFBEA,#DCCB94);
   box-shadow:inset 0 -2px 0 rgba(0,0,0,.25), 0 2px 4px rgba(0,0,0,.4)}
 .pat i.off{width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.3)}
 @media (max-width:620px){ .pat i.on{width:14px;height:14px} .pat{gap:6px; padding:10px} }
@@ -70,15 +70,15 @@
   box-shadow:0 11px 0 rgba(0,0,0,.36), 0 20px 32px rgba(0,0,0,.44)}
 .answers button:active{transform:translateY(4px); box-shadow:0 1px 0 rgba(0,0,0,.36),
   inset 0 3px 8px rgba(0,0,0,.45)}
-.answers button:first-child{background:linear-gradient(180deg,#4B8DF8,#1565D8); border-color:transparent;
-  box-shadow:0 7px 0 #0B3C8C, 0 18px 30px rgba(21,101,216,.45),
-    inset 0 2px 0 rgba(255,255,255,.4)}
-.answers button:first-child:active{box-shadow:0 1px 0 #0B3C8C, inset 0 3px 8px rgba(0,0,0,.35)}
+.answers button:first-child{background:linear-gradient(180deg,#C62B2C,#941A1B); border-color:transparent;
+  box-shadow:0 7px 0 #5E0F10, 0 18px 30px rgba(148,26,27,.5),
+    inset 0 2px 0 rgba(255,255,255,.32)}
+.answers button:first-child:active{box-shadow:0 1px 0 #5E0F10, inset 0 3px 8px rgba(0,0,0,.35)}
 
 /* ---------- feedback widget ---------- */
 .nfb-fab,.nfb-back{
   --nfb-surface:#FFFFFF; --nfb-line:#D6DAE0; --nfb-text:var(--ink); --nfb-dim:var(--muted);
-  --nfb-accent:var(--brand); --nfb-accent-ink:#FFFFFF; --nfb-star:var(--brand);
+  --nfb-accent:var(--brand); --nfb-accent-ink:#F5EFBB; --nfb-star:var(--amber-deep);
   --nfb-radius:8px; --nfb-font:'Poppins',system-ui,sans-serif; --nfb-head:'Poppins',system-ui,sans-serif;
 }
 .nfb-fab{
@@ -171,6 +171,7 @@
 
 <div class="stage">
   <div class="bar">
+    <img class="crest" src="niat-logo.png" alt="NIAT">
     <button class="ic" id="btnPause" title="Pause">❚❚</button>
     <button class="ic" id="btnSound" title="Sound">🔊</button>
     <div class="lvl" id="lvl">Lvl 1</div>
@@ -191,6 +192,7 @@
 <!-- ---------- instructions ---------- -->
 <div class="overlay" id="introScreen">
   <div class="sheet">
+    <img class="crest" src="niat-logo.png" alt="NIAT">
     <h1>Grid Challenge</h1>
     <div class="sub">Power of Attention, Memory</div>
     <p>A dot flashes green for two seconds. Remember exactly where it was.</p>

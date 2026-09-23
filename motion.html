@@ -4,9 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Motion Challenge</title>
-<meta name="theme-color" content="#12283F">
+<meta name="theme-color" content="#190508">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
+<link rel="icon" href="niat-logo.png">
 <link rel="stylesheet" href="common.css">
 <style>
   .wrap{display:flex; flex-direction:column; align-items:center; gap:14px}
@@ -23,9 +24,9 @@
   }
   .cell.block:active{transform:translateY(2px)}
   .cell.block{cursor:pointer}
-  .cell.sel{box-shadow:0 0 0 3px var(--amber) inset, 0 0 26px rgba(255,209,92,.35); z-index:2}
+  .cell.sel{box-shadow:0 0 0 3px var(--amber) inset, 0 0 26px rgba(245,239,187,.35); z-index:2}
   .cell.target{cursor:pointer}
-  .cell.target{background:rgba(75,141,248,.16)}
+  .cell.target{background:rgba(245,239,187,.14)}
   .cell.target::after{content:''; width:30%; height:30%; border-radius:50%;
     background:rgba(255,255,255,.5)}
   .cell.wall{background:rgba(255,255,255,.14)}
@@ -35,8 +36,8 @@
   .hole{width:58%; height:58%; border-radius:50%; position:absolute; background:#060F1A;
     box-shadow:inset 0 3px 10px rgba(0,0,0,.9), 0 0 0 2px rgba(255,255,255,.14)}
   .ball{width:58%; height:58%; border-radius:50%; position:absolute; z-index:3; cursor:pointer;
-    background:radial-gradient(circle at 34% 30%, #FF9E8C, #F3705A 60%, #C5432E);
-    box-shadow:0 0 22px rgba(243,112,90,.55), inset 0 -3px 6px rgba(0,0,0,.3)}
+    background:radial-gradient(circle at 34% 30%, #FF9E8C, #E0483A 60%, #94100F);
+    box-shadow:0 0 22px rgba(224,72,58,.6), inset 0 -3px 6px rgba(0,0,0,.35)}
   .moves{display:flex; align-items:center; gap:12px}
   .chip{background:var(--glass); border:1px solid var(--stroke); color:var(--ink); font-weight:800;
     font-size:19px; padding:8px 18px; border-radius:12px; font-variant-numeric:tabular-nums}
@@ -50,8 +51,8 @@
 
 /* ---------- feedback widget ---------- */
 .nfb-fab,.nfb-back{
-  --nfb-surface:#FFFFFF; --nfb-line:#D6DAE0; --nfb-text:#1B2430; --nfb-dim:#6C7885;
-  --nfb-accent:#1565D8; --nfb-accent-ink:#FFFFFF; --nfb-star:#1565D8;
+  --nfb-surface:#FFFBF0; --nfb-line:#E6DCC2; --nfb-text:#2A0B10; --nfb-dim:#7A6A55;
+  --nfb-accent:#941A1B; --nfb-accent-ink:#F5EFBB; --nfb-star:#DCC471;
   --nfb-radius:8px; --nfb-font:'Poppins',system-ui,sans-serif; --nfb-head:'Poppins',system-ui,sans-serif;
 }
 .nfb-fab{
@@ -145,7 +146,7 @@
   "use strict";
 
   var W = 5, H = 6;
-  var COLOURS = ['#FFD15C','#7C3AED','#38BDF8','#F3705A','#1565D8','#15803D'];
+  var COLOURS = ['#F5EFBB','#B97FD6','#4FA8B8','#C62B2C','#E08A2B','#2E9E63'];
 
   function idx(r, c){ return r * W + c; }
   function rowOf(i){ return (i / W) | 0; }

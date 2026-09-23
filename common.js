@@ -234,7 +234,7 @@ window.CG = (function () {
   }
 
   /* ---------- confetti ---------- */
-  var CONF_COLOURS = ['#FFD15C', '#4B8DF8', '#3DD68C', '#F3705A', '#9B7BFF', '#FFFFFF'];
+  var CONF_COLOURS = ['#F5EFBB', '#C62B2C', '#5BD69A', '#DCC471', '#FFFFFF', '#941A1B'];
   function confetti(count, originX, originY){
     if (reduced) return;
     var layer = el('div', 'conf');
@@ -276,6 +276,9 @@ window.CG = (function () {
     /* ---------- chrome ---------- */
     var stage = el('div', 'stage');
     var bar = el('div', 'bar');
+    var crest = el('img', 'crest');
+    crest.src = 'niat-logo.png';
+    crest.alt = 'NIAT';
     var btnPause = el('button', 'ic', '❚❚'); btnPause.title = 'Pause';
     var btnSound = el('button', 'ic', '🔊'); btnSound.title = 'Sound';
     var lvlEl = el('div', 'lvl', 'Lvl 1');
@@ -286,7 +289,7 @@ window.CG = (function () {
     var streakEl = el('div', 'streak'); streakEl.id = 'streak';
     var clockEl = el('div', 'clock', fmt(cfg.levelTime || cfg.session));
     var nameEl = el('div', 'name', cfg.name);
-    [btnPause, btnSound, lvlEl, scoreWrap, streakEl, clockEl, nameEl]
+    [crest, btnPause, btnSound, lvlEl, scoreWrap, streakEl, clockEl, nameEl]
       .forEach(function (n){ bar.appendChild(n); });
 
     var session = el('div', 'session');
@@ -317,6 +320,10 @@ window.CG = (function () {
     var endEl = overlay('endScreen');
 
     var introSheet = el('div', 'sheet');
+    var sheetCrest = el('img', 'crest');
+    sheetCrest.src = 'niat-logo.png';
+    sheetCrest.alt = 'NIAT';
+    introSheet.appendChild(sheetCrest);
     introSheet.appendChild(el('h1', null, cfg.name));
     introSheet.appendChild(el('div', 'sub', cfg.tag));
     (cfg.intro || []).forEach(function (p){ introSheet.appendChild(el('p', null, p)); });

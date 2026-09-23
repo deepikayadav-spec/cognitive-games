@@ -4,9 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Deductive Challenge</title>
-<meta name="theme-color" content="#12283F">
+<meta name="theme-color" content="#190508">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
+<link rel="icon" href="niat-logo.png">
 <link rel="stylesheet" href="common.css">
 <style>
   .wrap{display:flex; flex-direction:column; align-items:center; gap:clamp(18px,4vh,44px)}
@@ -19,8 +20,8 @@
   }
   .cell.q{
     font-weight:800; font-size:clamp(28px,4.6vw,48px); color:var(--amber);
-    background:rgba(255,209,92,.1); border-color:rgba(255,209,92,.45);
-    box-shadow:0 0 28px rgba(255,209,92,.18) inset;
+    background:rgba(245,239,187,.1); border-color:rgba(245,239,187,.45);
+    box-shadow:0 0 28px rgba(245,239,187,.16) inset;
   }
   .options{display:flex; gap:clamp(10px,2.6vw,26px); flex-wrap:wrap; justify-content:center}
   .opt{
@@ -42,8 +43,8 @@
 
 /* ---------- feedback widget ---------- */
 .nfb-fab,.nfb-back{
-  --nfb-surface:#FFFFFF; --nfb-line:#D6DAE0; --nfb-text:#1B2430; --nfb-dim:#6C7885;
-  --nfb-accent:#1565D8; --nfb-accent-ink:#FFFFFF; --nfb-star:#1565D8;
+  --nfb-surface:#FFFBF0; --nfb-line:#E6DCC2; --nfb-text:#2A0B10; --nfb-dim:#7A6A55;
+  --nfb-accent:#941A1B; --nfb-accent-ink:#F5EFBB; --nfb-star:#DCC471;
   --nfb-radius:8px; --nfb-font:'Poppins',system-ui,sans-serif; --nfb-head:'Poppins',system-ui,sans-serif;
 }
 .nfb-fab{
@@ -138,12 +139,12 @@
 
   /* the symbol set — shape plus colour, so no two read alike */
   var SYMBOLS = [
-    {id:'circle',   c:'#15803D'},
-    {id:'triangle', c:'#1565D8'},
-    {id:'square',   c:'#F3705A'},
-    {id:'cross',    c:'#F97316'},
-    {id:'diamond',  c:'#7C3AED'},
-    {id:'star',     c:'#0E7490'}
+    {id:'circle',   c:'#2E9E63'},
+    {id:'triangle', c:'#F5EFBB'},
+    {id:'square',   c:'#C62B2C'},
+    {id:'cross',    c:'#E08A2B'},
+    {id:'diamond',  c:'#B97FD6'},
+    {id:'star',     c:'#4FA8B8'}
   ];
 
   function shapeSVG(sym){
