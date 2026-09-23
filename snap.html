@@ -50,6 +50,11 @@
   .beat i.miss{background:var(--coral)}
   .beat i.now{background:var(--amber); transform:scale(1.35)}
   .hintline{color:var(--muted); font-size:12.5px; font-weight:600; text-align:center}
+  .verdict{
+    min-height:22px; font-size:14px; font-weight:800; letter-spacing:.06em;
+    text-transform:uppercase; opacity:0; transition:opacity .15s ease;
+  }
+  .verdict.on{opacity:1}
 </style>
 </head>
 <body>
@@ -58,14 +63,17 @@
 (function () {
   "use strict";
 
-  /* four colours nobody will mix up, all sitting in the crest's range */
+  /* Six hues chosen for distance from each other, not for prettiness: the
+     closest pair here is 103 apart in RGB. The old set had green and teal only
+     56 apart and both in the opening four, so an honest answer could look
+     wrong. The first four are the ones levels 1-2 play with. */
   var COLOURS = [
     {name:'RED',    hex:'#E23B34'},
-    {name:'CREAM',  hex:'#F5EFBB'},
-    {name:'GREEN',  hex:'#5BD69A'},
-    {name:'TEAL',   hex:'#4FA8B8'},
-    {name:'GOLD',   hex:'#E0B457'},
-    {name:'VIOLET', hex:'#B97FD6'}
+    {name:'BLUE',   hex:'#3E7BFA'},
+    {name:'GREEN',  hex:'#35C46B'},
+    {name:'GOLD',   hex:'#F0B429'},
+    {name:'VIOLET', hex:'#A46BF5'},
+    {name:'PINK',   hex:'#FF5FA2'}
   ];
 
   /* more swatches to choose between, less time to choose */
@@ -98,22 +106,30 @@
     var swatches = CG.el('div', 'swatches');
     var buttons = pool.map(function (c, i){
       var s = CG.el('button', 'sw');
-      s.style.background = 'linear-gradient(180deg,' + CG.shade(c.hex, 0.22) + ',' + c.hex + ')';
+      s.style.background = 'linear-gradient(180deg,' + CG.shade(c.hex, 0.1) + ',' +
+                     CG.shade(c.hex, -0.08) + ')';
       s.setAttribute('aria-label', c.name);
       s.addEventListener('click', function (){ answer(i, s); });
       swatches.appendChild(s);
       return s;
     });
+    var verdict = CG.el('div', 'verdict');
     var hint = CG.el('div', 'hintline', 'the word lies — read the rule, not the text');
 
     wrap.appendChild(ruleEl); wrap.appendChild(wordEl); wrap.appendChild(beats);
-    wrap.appendChild(swatches); wrap.appendChild(hint);
+    wrap.appendChild(swatches); wrap.appendChild(verdict); wrap.appendChild(hint);
     board.appendChild(wrap);
 
     var at = -1, want = -1, answered = true, running = true;
 
     function clearMarks(){
       buttons.forEach(function (s){ s.className = 'sw'; });
+      verdict.className = 'verdict';
+    }
+    function sayAnswer(){
+      verdict.textContent = pool[want].name + ' was the answer';
+      verdict.style.color = pool[want].hex;
+      verdict.className = 'verdict on';
     }
 
     function answer(i, node){
@@ -128,9 +144,10 @@
         node.classList.add('wrong');
         buttons[want].classList.add('right');
         dots[at].className = 'miss';
+        sayAnswer();
         api.tally(-1);
       }
-      timers.push(setTimeout(next, 420));
+      timers.push(setTimeout(next, 620));
     }
 
     function clearTimers(){ timers.forEach(clearTimeout); timers = []; }
@@ -173,6 +190,7 @@
         wordEl.classList.add('gone');
         buttons[want].classList.add('right');
         dots[at].className = 'miss';
+        sayAnswer();
         api.tally(-1, 'too slow');
         timers.push(setTimeout(next, 420));
       }, ms));
