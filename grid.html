@@ -5,125 +5,69 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Grid Challenge</title>
 <meta name="description" content="Power of attention and memory — hold three dot positions while answering symmetry questions in between, then recall them in order.">
-<meta name="theme-color" content="#183B56">
+<meta name="theme-color" content="#0B1A2C">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%9F%A0</text></svg>">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="common.css">
+<script src="common.js"></script>
 <style>
-:root{
-  --navy:#183B56; --navy-2:#12293D; --slate:#475569; --slate-2:#64748B;
-  --paper:#EEF2F7; --paper-2:#F7FAFD; --ink:#183B56; --muted:#64748B;
-  --orange:#1565D8; --amber:#FFD15C; --red:#F3705A; --green:#15803D;
-  --dot:#94A3B8; --cell:#475569;
-  --ff:'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif;
-}
-*{box-sizing:border-box}
-html,body{height:100%; margin:0}
-body{background:#DDE5EE; color:var(--ink); font-family:var(--ff); overflow:hidden}
-button{font-family:inherit; cursor:pointer}
+:root{ --amber:#FFD15C; }
 
-.stage{height:100%; display:flex; flex-direction:column;
-  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px)}
+/* ---------- board: dots, patterns, answers ---------- */
+.timerbar{flex:none; height:6px; background:rgba(255,255,255,.1); margin:0 14px;
+  border-radius:99px; overflow:hidden}
+.timerbar i{display:block; height:100%; width:100%; border-radius:99px;
+  background:linear-gradient(135deg,#FFD15C,#FFB020); transform-origin:left center}
 
-/* ---------- top bar ---------- */
-.bar{display:flex; align-items:center; gap:10px; background:var(--navy); padding:8px 12px; flex:none}
-.bar .ic{width:44px; height:34px; border:0; border-radius:5px; background:var(--slate); color:#fff;
-  font-size:15px; display:grid; place-items:center; line-height:1}
-.bar .ic:hover{background:var(--slate-2)}
-.bar .lvl{background:var(--slate); color:#fff; font-weight:600; font-size:15px;
-  padding:7px 16px; border-radius:5px; white-space:nowrap}
-.scorebar{flex:1 1 auto; min-width:60px; height:34px; border-radius:17px; background:#fff;
-  position:relative; overflow:hidden; display:grid; place-items:center}
-.scorebar .fill{position:absolute; inset:0; width:0; background:var(--amber); transition:width .3s}
-.scorebar .v{position:relative; font-weight:700; font-size:16px; color:var(--red)}
-.scorebar .v.pos{color:var(--red)}
-.clock{background:var(--slate); color:#fff; font-weight:700; font-size:16px; padding:7px 14px;
-  border-radius:5px; font-variant-numeric:tabular-nums}
-.bar .name{color:#fff; font-weight:700; font-size:17px; white-space:nowrap}
-@media (max-width:720px){ .bar .name{display:none} .bar .lvl{padding:7px 10px; font-size:13px} }
+.field{flex:1 1 auto; margin:10px 14px 16px; position:relative; overflow:hidden; min-height:0;
+  border-radius:22px; border:1px solid var(--stroke);
+  background:linear-gradient(165deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px)}
 
-/* ---------- prompt line ---------- */
-.prompt{flex:none; text-align:right; font-weight:700; font-size:clamp(16px,2.4vw,26px);
-  padding:8px 16px 4px}
-.timerbar{flex:none; height:9px; background:#C6D2E0; margin:0 16px; border-radius:2px; overflow:hidden}
-.timerbar i{display:block; height:100%; width:100%; background:var(--slate);
-  transform-origin:left center}
-
-/* ---------- play area ---------- */
-.field{flex:1 1 auto; margin:12px 16px 16px; background:var(--paper); border-radius:3px;
-  position:relative; overflow:hidden; min-height:0}
-
-.dot{position:absolute; border-radius:50%; background:var(--dot);
-  box-shadow:0 2px 3px rgba(0,0,0,.18); transform:translate(-50%,-50%);
-  transition:background .12s, transform .12s}
-.dot.lit{background:var(--green)}
-.dot.pick{background:var(--navy)}
-.dot.right{background:var(--green)}
-.dot.wrong{background:var(--red)}
+.dot{position:absolute; border-radius:50%; background:rgba(255,255,255,.26);
+  transform:translate(-50%,-50%); transition:background .15s, transform .15s, box-shadow .15s}
+.dot.lit{background:var(--green-lite); box-shadow:0 0 30px rgba(61,214,140,.7);
+  transform:translate(-50%,-50%) scale(1.14)}
+.dot.right{background:var(--green-lite); box-shadow:0 0 22px rgba(61,214,140,.55)}
+.dot.wrong{background:var(--coral); box-shadow:0 0 22px rgba(243,112,90,.5)}
 .dot.click{cursor:pointer}
-.dot.click:hover{transform:translate(-50%,-50%) scale(1.12)}
-.dot .seq{position:absolute; inset:0; display:grid; place-items:center; color:#fff;
-  font-weight:700; font-size:14px}
+.dot.click:hover{background:rgba(255,255,255,.44); transform:translate(-50%,-50%) scale(1.14)}
+.dot.click:active{transform:translate(-50%,-50%) scale(.95)}
+.dot .seq{position:absolute; inset:0; display:grid; place-items:center; color:#08121E;
+  font-weight:800; font-size:14px}
 
 /* symmetry round */
 .sym{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center;
-  justify-content:center; gap:26px; padding:16px}
-.sym h2{margin:0; font-weight:600; font-size:clamp(17px,2.6vw,26px); color:#183B56}
-.pair{display:flex; gap:22px; align-items:center; justify-content:center; flex-wrap:wrap}
-.pat{background:#fff; padding:14px; display:grid; gap:9px}
+  justify-content:center; gap:clamp(16px,3.4vh,30px); padding:16px}
+.sym h2{margin:0; font-weight:800; font-size:clamp(17px,2.6vw,25px); color:var(--ink);
+  letter-spacing:-.01em}
+.pair{display:flex; gap:clamp(12px,3vw,26px); align-items:center; justify-content:center;
+  flex-wrap:wrap}
+.pat{background:rgba(255,255,255,.07); border:1px solid var(--stroke); border-radius:16px;
+  padding:14px; display:grid; gap:9px}
 .pat span{display:grid; place-items:center}
-.pat i{display:block; background:var(--cell)}
-.pat i.on{width:22px; height:22px}
-.pat i.off{width:7px; height:7px; border-radius:50%}
-@media (max-width:620px){ .pat i.on{width:15px;height:15px} .pat{gap:6px; padding:10px} }
+.pat i{display:block; background:var(--ink)}
+.pat i.on{width:20px; height:20px; border-radius:4px}
+.pat i.off{width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.3)}
+@media (max-width:620px){ .pat i.on{width:14px;height:14px} .pat{gap:6px; padding:10px} }
 
-.answers{display:flex; gap:26px}
-.answers button{background:var(--navy-2); color:#fff; border:0; border-radius:9px;
-  font-size:clamp(18px,2.6vw,26px); font-weight:400; padding:12px 44px;
-  box-shadow:0 5px 0 #0B1F30}
-.answers button:hover{background:#1D4E72}
-.answers button:active{transform:translateY(3px); box-shadow:0 2px 0 #0B1F30}
-
-/* ---------- overlays ---------- */
-.overlay{position:fixed; inset:0; z-index:20; display:grid; place-items:center; padding:18px;
-  background:rgba(20,26,34,.72); overflow:auto}
-.overlay[hidden]{display:none}
-.sheet{width:min(920px,100%); background:#1F4B6B; color:#fff; border-radius:4px; padding:26px 28px;
-  display:flex; flex-direction:column; gap:14px}
-.sheet h1{margin:0; text-align:center; color:var(--amber); font-size:clamp(28px,5vw,42px); font-weight:700}
-.sheet .sub{align-self:center; background:#fff; color:var(--ink); font-weight:700;
-  border-radius:4px; padding:5px 16px; font-size:clamp(13px,2vw,17px)}
-.sheet p{margin:0; font-size:clamp(14px,1.9vw,18.5px); line-height:1.5}
-.sheet h2{margin:8px 0 0; text-align:center; color:var(--amber); font-size:clamp(21px,3.4vw,30px)}
-.sheet ul{margin:0; padding-left:20px; display:flex; flex-direction:column; gap:5px;
-  font-size:clamp(13.5px,1.8vw,17px)}
-.play{align-self:center; background:var(--orange); color:#fff; border:0; border-radius:4px;
-  font-size:clamp(18px,2.6vw,25px); font-weight:600; padding:11px 62px; margin-top:6px}
-.play:hover{filter:brightness(1.06)}
-.results{display:flex; flex-direction:column; gap:0}
-.results div{display:flex; justify-content:space-between; padding:9px 2px;
-  border-bottom:1px solid rgba(255,255,255,.16); font-size:15.5px}
-.results div:last-child{border-bottom:0}
-.results b{font-weight:700}
-.ghost{align-self:center; background:transparent; border:1px solid rgba(255,255,255,.4);
-  color:#fff; border-radius:4px; padding:9px 26px; font-size:15px}
-
-.backlink{position:fixed; left:12px; bottom:12px; z-index:9; background:rgba(18,40,63,.9);
-  color:#fff; text-decoration:none; font-size:12.5px; font-weight:600; padding:7px 13px;
-  border-radius:999px}
-.backlink:hover{background:var(--navy)}
-
-/* feedback flash over the field */
-.flash{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-  font-size:clamp(26px,5vw,44px); font-weight:700; pointer-events:none; opacity:0;
-  transition:opacity .2s, transform .2s}
-.flash.on{opacity:1; transform:translate(-50%,-50%) scale(1.08)}
-.flash.good{color:var(--green)} .flash.bad{color:var(--red)}
+.answers{display:flex; gap:clamp(12px,3vw,26px)}
+.answers button{
+  border:1px solid var(--stroke); border-radius:99px; color:var(--ink);
+  background:linear-gradient(165deg,rgba(255,255,255,.12),rgba(255,255,255,.04));
+  font-size:clamp(16px,2.4vw,22px); font-weight:800; padding:13px 44px;
+  transition:transform .15s cubic-bezier(.2,1.2,.4,1), box-shadow .15s, border-color .15s}
+.answers button:hover{transform:translateY(-4px); border-color:var(--stroke-2);
+  box-shadow:0 14px 28px rgba(0,0,0,.42)}
+.answers button:active{transform:translateY(0) scale(.94)}
+.answers button:first-child{background:linear-gradient(135deg,#1565D8,#4B8DF8); border-color:transparent;
+  box-shadow:0 8px 24px rgba(21,101,216,.4)}
 
 /* ---------- feedback widget ---------- */
 .nfb-fab,.nfb-back{
   --nfb-surface:#FFFFFF; --nfb-line:#D6DAE0; --nfb-text:var(--ink); --nfb-dim:var(--muted);
-  --nfb-accent:var(--orange); --nfb-accent-ink:#FFFFFF; --nfb-star:var(--orange);
+  --nfb-accent:var(--brand); --nfb-accent-ink:#FFFFFF; --nfb-star:var(--brand);
   --nfb-radius:8px; --nfb-font:'Poppins',system-ui,sans-serif; --nfb-head:'Poppins',system-ui,sans-serif;
 }
 .nfb-fab{
@@ -186,7 +130,7 @@ button{font-family:inherit; cursor:pointer}
 .nfb-star:hover{transform:scale(1.14)}
 .nfb-star:focus-visible{outline:2px solid var(--nfb-accent);outline-offset:2px;border-radius:6px}
 .nfb-slab{margin-left:8px;font-size:12.5px;font-weight:600;color:var(--nfb-dim)}
-.nfb-err{margin:0 0 12px;font-size:12.5px;font-weight:600;color:var(--red)}
+.nfb-err{margin:0 0 12px;font-size:12.5px;font-weight:600;color:var(--coral)}
 .nfb-err[hidden]{display:none}
 .nfb-act{display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap}
 .nfb-act button{
@@ -212,14 +156,15 @@ button{font-family:inherit; cursor:pointer}
 </head>
 <body>
 
-<a class="backlink" href="index.html">← All games</a>
+<a class="backlink" href="index.html">← all games</a>
 
 <div class="stage">
   <div class="bar">
     <button class="ic" id="btnPause" title="Pause">❚❚</button>
     <button class="ic" id="btnSound" title="Sound">🔊</button>
-    <div class="lvl" id="lvl">Level 1</div>
+    <div class="lvl" id="lvl">Lvl 1</div>
     <div class="scorebar"><div class="fill" id="scoreFill"></div><span class="v" id="score">0</span></div>
+    <div class="streak" id="streak"></div>
     <div class="clock" id="clock">04:00</div>
     <div class="name">Grid Challenge</div>
   </div>
@@ -237,22 +182,17 @@ button{font-family:inherit; cursor:pointer}
   <div class="sheet">
     <h1>Grid Challenge</h1>
     <div class="sub">Power of Attention, Memory</div>
-    <p>Firstly you will be shown a number of circles scrambled at different positions and one of the
-      circles blinks. You have to remember the position of the circle which blinks. Then you will be
-      shown two patterns with grids arranged randomly. You have to find whether the given two
-      patterns are symmetric or not. This will repeat for three times. In these three turns you must
-      remember the three different positions of circles and also answer whether the given two
-      patterns are symmetric or not. Then you will be again shown the number of circles scrambled at
-      different positions. Now you have to mark the three circles which you were asked to remember
-      in the same order you were shown.</p>
-    <h2>How to Play</h2>
+    <p>A dot flashes green for two seconds. Remember exactly where it was.</p>
+    <p>Then a symmetry question shows up and tries to knock it out of your head. Three rounds of
+      that, holding three different dots — then you click all three back, in the order they
+      appeared.</p>
+    <h2>How it works</h2>
     <ul>
-      <li>Correct answer will add the score by 3 points.</li>
-      <li>Wrong answer will subtract the score by 1 point.</li>
-      <li>Highlighted circle appears only 2 sec.</li>
-      <li>The two patterns appear for 6 seconds.</li>
+      <li>+3 for a correct answer, −1 for a wrong one</li>
+      <li>The dot shows for 2 seconds, the patterns for 6</li>
+      <li>Order matters when you click the dots back</li>
     </ul>
-    <button class="play" id="btnPlay">Play</button>
+    <button class="play" id="btnPlay">Let's go</button>
   </div>
 </div>
 
@@ -445,6 +385,19 @@ button{font-family:inherit; cursor:pointer}
   }
 
   /* ---------------- scoring ---------------- */
+  function bumpStreak(good){
+    if (good){
+      S.streak++;
+      S.bestStreak = Math.max(S.bestStreak, S.streak);
+    } else {
+      S.streak = 0;
+    }
+    var el = document.getElementById('streak');
+    var line = window.CG ? CG.streakLine(S.streak) : '';
+    el.textContent = line;
+    el.className = line ? 'streak on' : 'streak';
+  }
+
   function addScore(n){
     S.score += n;
     document.getElementById('score').textContent = S.score;
@@ -515,8 +468,12 @@ button{font-family:inherit; cursor:pointer}
       clearTimeout(phaseTimer);
       stopBar();
       S.symAsked++;
-      if (said === q.answer){ S.symRight++; addScore(3); flash('+3', true); beep(880, 140); }
-      else { addScore(-1); flash('−1', false); beep(220, 200, 'square'); }
+      if (said === q.answer){
+        S.symRight++; addScore(3); flash('+3', true); bumpStreak(true);
+        if (window.CG){ S.streak >= 3 ? CG.chime() : beep(880, 140); CG.confetti(S.streak >= 3 ? 34 : 16); }
+      } else {
+        addScore(-1); flash('−1', false); beep(220, 200, 'square'); bumpStreak(false);
+      }
       setTimeout(nextRound, 620);
     }
 
@@ -536,7 +493,8 @@ button{font-family:inherit; cursor:pointer}
       answered = true;
       S.symAsked++;
       addScore(-1);
-      flash('Too slow', false);
+      flash('too slow', false);
+      bumpStreak(false);
       beep(200, 240, 'square');
       setTimeout(nextRound, 620);
     }, SYM_MS);
@@ -560,10 +518,12 @@ button{font-family:inherit; cursor:pointer}
       if (index === wanted){
         S.dotsRight++;
         node.classList.add('right');
-        addScore(3); beep(880, 130);
+        addScore(3); beep(880, 130); bumpStreak(true);
+        if (window.CG) CG.confetti(14, node.getBoundingClientRect().left + 16,
+                                       node.getBoundingClientRect().top + 16);
       } else {
         node.classList.add('wrong');
-        addScore(-1); beep(220, 200, 'square');
+        addScore(-1); beep(220, 200, 'square'); bumpStreak(false);
         // show where it should have been
         var should = S.dots[wanted].el;
         should.classList.add('right');
@@ -614,9 +574,11 @@ button{font-family:inherit; cursor:pointer}
     S = {
       level:1, levelsDone:0, round:0, score:0, left:SESSION_S,
       symAsked:0, symRight:0, dotsAsked:0, dotsRight:0,
-      dots:[], targets:[], phase:'', running:true, paused:false
+      dots:[], targets:[], phase:'', running:true, paused:false,
+      streak:0, bestStreak:0
     };
     document.getElementById('score').textContent = '0';
+    document.getElementById('streak').className = 'streak';
     document.getElementById('scoreFill').style.width = '0%';
     document.getElementById('clock').textContent = fmt(SESSION_S);
     show('introScreen', false); show('endScreen', false); show('pauseScreen', false);

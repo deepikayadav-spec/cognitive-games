@@ -9,31 +9,38 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="common.css">
 <style>
-  body{background:#F2F6FB}
   .wrap{display:flex; flex-direction:column; align-items:center; gap:14px}
-  .grid{display:grid; gap:2px; background:#C6D2E0; padding:2px; touch-action:manipulation}
-  .cell{width:clamp(38px,6.4vw,64px); height:clamp(38px,6.4vw,64px); background:#DDE5EE;
-    position:relative; display:grid; place-items:center}
+  .grid{display:grid; gap:5px; padding:8px; border-radius:20px; touch-action:manipulation;
+    background:rgba(255,255,255,.05); border:1px solid var(--stroke);
+    box-shadow:0 24px 60px rgba(0,0,0,.45)}
+  .cell{width:clamp(38px,6.4vw,62px); height:clamp(38px,6.4vw,62px); border-radius:11px;
+    background:rgba(255,255,255,.055); position:relative; display:grid; place-items:center;
+    transition:background .15s ease, transform .12s ease}
   .cell.block{cursor:pointer}
-  .cell.sel{outline:3px solid #183B56; outline-offset:-3px; z-index:2}
+  .cell.sel{box-shadow:0 0 0 3px var(--amber) inset, 0 0 26px rgba(255,209,92,.35); z-index:2}
   .cell.target{cursor:pointer}
-  .cell.target::after{content:''; width:34%; height:34%; border-radius:50%;
-    background:rgba(24,59,86,.22)}
-  .cell.wall::after{content:''; width:70%; height:70%;
-    background:linear-gradient(45deg,transparent 44%,#fff 44%,#fff 56%,transparent 56%),
-               linear-gradient(-45deg,transparent 44%,#fff 44%,#fff 56%,transparent 56%);
-    background-color:#B6C4D4}
-  .hole{width:56%; height:56%; border-radius:50%; background:#183B56; position:absolute}
-  .ball{width:56%; height:56%; border-radius:50%; background:#F3705A; position:absolute; z-index:3;
-    box-shadow:inset 0 -3px 6px rgba(0,0,0,.25); cursor:pointer}
+  .cell.target{background:rgba(75,141,248,.16)}
+  .cell.target::after{content:''; width:30%; height:30%; border-radius:50%;
+    background:rgba(255,255,255,.5)}
+  .cell.wall{background:rgba(255,255,255,.14)}
+  .cell.wall::after{content:''; width:62%; height:62%;
+    background:linear-gradient(45deg,transparent 44%,rgba(11,26,44,.85) 44%,rgba(11,26,44,.85) 56%,transparent 56%),
+               linear-gradient(-45deg,transparent 44%,rgba(11,26,44,.85) 44%,rgba(11,26,44,.85) 56%,transparent 56%)}
+  .hole{width:58%; height:58%; border-radius:50%; position:absolute; background:#060F1A;
+    box-shadow:inset 0 3px 10px rgba(0,0,0,.9), 0 0 0 2px rgba(255,255,255,.14)}
+  .ball{width:58%; height:58%; border-radius:50%; position:absolute; z-index:3; cursor:pointer;
+    background:radial-gradient(circle at 34% 30%, #FF9E8C, #F3705A 60%, #C5432E);
+    box-shadow:0 0 22px rgba(243,112,90,.55), inset 0 -3px 6px rgba(0,0,0,.3)}
   .moves{display:flex; align-items:center; gap:12px}
-  .chip{background:#183B56; color:#fff; font-weight:700; font-size:19px; padding:8px 18px;
-    border-radius:4px; font-variant-numeric:tabular-nums}
-  .chip.low{background:var(--red)}
-  .hint{color:var(--muted); font-size:13.5px}
-  .giveup{background:transparent; border:1px solid var(--line); border-radius:4px; color:var(--muted);
-    padding:7px 14px; font-size:13px}
+  .chip{background:var(--glass); border:1px solid var(--stroke); color:var(--ink); font-weight:800;
+    font-size:19px; padding:8px 18px; border-radius:12px; font-variant-numeric:tabular-nums}
+  .chip.low{background:rgba(243,112,90,.22); border-color:var(--coral); color:var(--coral)}
+  .hint{color:var(--muted); font-size:13px; font-weight:600}
+  .giveup{background:var(--glass); border:1px solid var(--stroke); border-radius:99px;
+    color:var(--muted); padding:8px 16px; font-size:12.5px; font-weight:700;
+    transition:transform .14s ease, color .15s ease}
   .giveup:hover{color:var(--ink)}
+  .giveup:active{transform:scale(.94)}
 
 /* ---------- feedback widget ---------- */
 .nfb-fab,.nfb-back{
@@ -313,8 +320,8 @@
 
     var movesRow = CG.el('div', 'moves');
     var chip = CG.el('div', 'chip', '0');
-    var hint = CG.el('div', 'hint', 'moves used of ' + limit);
-    var giveUp = CG.el('button', 'giveup', 'Skip this board');
+    var hint = CG.el('div', 'hint', 'of ' + limit + ' moves');
+    var giveUp = CG.el('button', 'giveup', 'skip this one');
     movesRow.appendChild(chip); movesRow.appendChild(hint); movesRow.appendChild(giveUp);
 
     giveUp.addEventListener('click', function (){
@@ -436,26 +443,22 @@
     wrap.appendChild(movesRow);
     board.appendChild(wrap);
     draw();
-    api.prompt('Clear a path and roll the ball into the hole — ' + limit + ' moves');
+    api.prompt('Sink the ball in ' + limit + ' moves 🎯');
   }
 
   CG.create({
     name:'Motion Challenge',
     tag:'Imagination, Decision making, Time Management',
-    prompt:'Move the blocks, get the ball to the hole',
-    intro:['In this game you are given a grid designed with coloured and uncoloured squares. In ' +
-           'addition to this the grid consists of a red ball and a black hole in different squares. ' +
-           'Your aim is to move the red ball into the black hole. You can move the ball only into ' +
-           'the uncoloured squares. The squares with a cross mark cannot be moved.',
-           'You can move the coloured squares horizontally and vertically into the uncoloured ' +
-           'squares. Every time you move a coloured square or the ball it is counted as one move, ' +
-           'so you must move the red ball into the hole within the given limited number of moves. ' +
-           'You can move the squares upon the black hole but you cannot move them upon the ball.',
-           'Click a block or the ball to select it, then click where it should go — or use the ' +
-           'arrow keys.'],
-    howto:['Time duration is four minutes.',
-           'For every correct attempt 4 marks is awarded.',
-           'For every incorrect attempt 1 mark is deducted.'],
+    prompt:'Clear the path 🎯',
+    intro:['A ball, a hole, and coloured blocks in the way. Slide the blocks to open a path, ' +
+           'then roll the ball home.',
+           'Blocks and the ball move one square at a time into empty space. Blocks can slide over ' +
+           'the hole but never onto the ball, and the X square is bolted down. Every move counts, ' +
+           'and you only get so many.',
+           'Tap a block or the ball, then tap where it goes. Arrow keys work too.'],
+    howto:['+4 for sinking the ball, −1 if you run out of moves',
+           'Every board is solvable — the limit is the best route plus two',
+           '4 minutes total, boards get tighter as you climb'],
     session:240,
     levelTime:null,
     pointsRight:4, pointsWrong:1, scoreFull:80,

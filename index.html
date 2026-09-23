@@ -4,165 +4,259 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Cognitive Ability Games</title>
-<meta name="description" content="Five aptitude-style cognitive games — deduction, logical switching, attention and memory, inductive reasoning and spatial planning.">
-<meta name="theme-color" content="#183B56">
+<meta name="description" content="Five placement-test brain games — memory, speed, logic, pattern spotting and planning. Four minutes each, scored live.">
+<meta name="theme-color" content="#0B1A2C">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%A7%A9</text></svg>">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap">
 <style>
   :root{
-    --navy:#183B56; --navy-2:#12293D; --brand:#1565D8; --amber:#FFD15C;
-    --ink:#183B56; --muted:#64748B; --line:#D1D8DD;
+    --bg:#0B1A2C; --navy:#183B56; --navy-2:#12293D;
+    --glass:rgba(255,255,255,.055); --glass-2:rgba(255,255,255,.09);
+    --stroke:rgba(255,255,255,.12); --stroke-2:rgba(255,255,255,.2);
+    --brand:#1565D8; --brand-lite:#4B8DF8; --amber:#FFD15C; --coral:#F3705A;
+    --green:#15803D; --green-lite:#3DD68C; --violet:#9B7BFF;
+    --ink:#EAF2FC; --ink-2:#A9BDD6; --muted:#7D93AE;
+    --grad-brand:linear-gradient(135deg,#1565D8 0%,#4B8DF8 100%);
+    --grad-amber:linear-gradient(135deg,#FFD15C 0%,#FFB020 100%);
+    --ff:'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif;
   }
   *{box-sizing:border-box}
-  html,body{margin:0}
-  body{background:#F2F6FB; color:var(--ink);
-    font-family:'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif;
-    padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
+  body{
+    margin:0; background:var(--bg); color:var(--ink); font-family:var(--ff);
+    background-image:
+      radial-gradient(820px 460px at 8% -6%, rgba(21,101,216,.4), transparent 60%),
+      radial-gradient(640px 400px at 96% 2%, rgba(255,209,92,.16), transparent 58%),
+      radial-gradient(760px 520px at 52% 106%, rgba(243,112,90,.14), transparent 60%);
+    padding-bottom:calc(46px + env(safe-area-inset-bottom,0px));
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1060px; margin:0 auto; padding-inline:16px}
 
-  header{background:var(--navy); color:#fff; text-align:center;
-    padding:calc(26px + env(safe-area-inset-top,0px)) 16px 26px}
-  .mark{display:inline-flex; align-items:center; gap:11px; margin-bottom:12px}
-  .mark .box{width:44px; height:44px; border:4px solid var(--amber); display:grid; place-items:center;
-    font-weight:700; font-size:19px; color:var(--amber)}
-  .mark span{font-weight:700; font-size:clamp(20px,4vw,30px); letter-spacing:.04em; color:var(--amber)}
-  header h1{margin:0; font-size:clamp(24px,5vw,44px); font-weight:700; text-wrap:balance}
-  header p{margin:10px auto 0; max-width:60ch; color:#C2D2E2; font-size:clamp(13.5px,2vw,16px)}
+  /* ---------- hero ---------- */
+  header{padding-top:calc(30px + env(safe-area-inset-top,0px)); text-align:center}
+  .mark{
+    display:inline-flex; align-items:center; gap:9px; padding:7px 15px 7px 8px;
+    border-radius:99px; background:var(--glass); border:1px solid var(--stroke);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  }
+  .mark .box{
+    width:30px; height:30px; border-radius:9px; display:grid; place-items:center;
+    background:var(--grad-amber); color:#2A1200; font-weight:800; font-size:15px;
+  }
+  .mark span{font-weight:700; font-size:12.5px; letter-spacing:.14em; color:var(--ink-2)}
 
-  .grid{max-width:1040px; margin:0 auto; padding:34px 16px 10px;
-    display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:26px}
-  .card{background:#fff; border-radius:12px; padding:20px; display:flex; flex-direction:column;
-    align-items:center; gap:13px; text-align:center; box-shadow:0 6px 18px rgba(0,0,0,.14)}
-  .thumb{width:132px; height:132px; border-radius:16px; display:grid; place-items:center;
-    border:4px solid #fff; box-shadow:0 3px 10px rgba(0,0,0,.2); overflow:hidden}
+  h1{
+    margin:18px 0 0; font-size:clamp(34px,8vw,68px); font-weight:800; line-height:.98;
+    letter-spacing:-.035em; text-wrap:balance;
+  }
+  h1 em{
+    font-style:normal; background:var(--grad-amber);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .sub{margin:14px auto 0; max-width:54ch; color:var(--ink-2); font-size:clamp(14px,2.2vw,17px);
+    line-height:1.6}
+  .facts{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:18px}
+  .fact{
+    font-size:12.5px; font-weight:600; color:var(--ink-2); padding:7px 14px; border-radius:99px;
+    background:var(--glass); border:1px solid var(--stroke);
+  }
+  .fact b{color:var(--ink)}
+
+  /* ---------- cards ---------- */
+  .grid{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px;
+    margin-top:34px;
+  }
+  .card{
+    position:relative; display:flex; flex-direction:column; gap:12px; padding:18px;
+    border-radius:22px; text-decoration:none; color:inherit; overflow:hidden;
+    background:linear-gradient(165deg,rgba(255,255,255,.085),rgba(255,255,255,.028));
+    border:1px solid var(--stroke);
+    backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    transition:transform .2s cubic-bezier(.2,.9,.3,1), border-color .2s ease, box-shadow .2s ease;
+  }
+  .card::after{
+    content:''; position:absolute; inset:-40% -10% auto; height:130px; opacity:.55;
+    background:radial-gradient(closest-side, var(--tint), transparent 70%);
+    pointer-events:none;
+  }
+  .card:hover{transform:translateY(-6px); border-color:var(--stroke-2);
+    box-shadow:0 22px 46px rgba(0,0,0,.42)}
+  .card:active{transform:translateY(-2px) scale(.99)}
+
+  .thumb{
+    width:100%; aspect-ratio:16/10; border-radius:16px; overflow:hidden; position:relative;
+    border:1px solid var(--stroke); background:var(--navy-2);
+  }
   .thumb svg{width:100%; height:100%; display:block}
-  .card h2{margin:0; font-size:18px; font-weight:600}
-  .card .skill{font-size:12.5px; color:var(--muted); min-height:34px}
-  .card a{background:var(--brand); color:#fff; text-decoration:none; font-weight:600; font-size:15.5px;
-    padding:9px 30px; border-radius:5px}
-  .card a:hover{background:#1049A8}
+  .thumb::before{
+    content:''; position:absolute; inset:0 0 auto; height:52px; pointer-events:none;
+    background:linear-gradient(180deg,rgba(6,14,24,.82),transparent);
+  }
+  .badges{position:absolute; left:10px; top:10px; display:flex; gap:6px; flex-wrap:wrap; z-index:2}
+  .badge{
+    font-size:11px; font-weight:700; padding:5px 10px; border-radius:99px; color:#08121E;
+    background:var(--amber); box-shadow:0 4px 12px rgba(0,0,0,.35);
+  }
+  .badge.cool{background:var(--brand-lite); color:#04101F}
+  .badge.hot{background:var(--coral); color:#2A0A04}
+  .badge.mint{background:var(--green-lite); color:#05231A}
+  .badge.grape{background:var(--violet); color:#140A2E}
 
-  footer{max-width:1040px; margin:26px auto 0; padding:0 16px; color:#5A6B7D; font-size:13px;
-    text-align:center}
-  footer a{color:var(--brand)}
+  .card h2{margin:0; font-size:19px; font-weight:800; letter-spacing:-.02em}
+  .card .line{margin:0; color:var(--ink-2); font-size:13.5px; line-height:1.5; min-height:40px}
+  .meta{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:auto}
+  .diff{display:flex; align-items:center; gap:7px; font-size:11.5px; font-weight:700;
+    color:var(--muted); letter-spacing:.06em; text-transform:uppercase}
+  .dots{display:flex; gap:3px}
+  .dots i{width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.2)}
+  .dots i.on{background:var(--amber)}
+  .go{
+    display:inline-flex; align-items:center; gap:7px; font-size:14px; font-weight:800; color:#fff;
+    padding:10px 20px; border-radius:99px; background:var(--grad-brand);
+    box-shadow:0 8px 22px rgba(21,101,216,.4); transition:transform .15s ease;
+  }
+  .card:hover .go{transform:translateX(3px)}
+
+  footer{
+    max-width:1060px; margin:34px auto 0; padding:0 16px; text-align:center;
+    color:var(--muted); font-size:12.5px; line-height:1.7;
+  }
+  footer b{color:var(--ink-2)}
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none !important; transition:none !important}
+  }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="mark"><span class="box">N</span><span>NIAT · COGNITIVE LAB</span></div>
-  <h1>Cognitive Ability Games</h1>
-  <p>Five aptitude-style drills in the format placement tests actually use. Each runs for four
-    minutes, scores as you go, and needs nothing but this page.</p>
-</header>
+<div class="wrap">
+  <header>
+    <div class="mark"><span class="box">N</span><span>NIAT · BRAIN GYM</span></div>
+    <h1>Five games.<br>Four minutes. <em>No mercy.</em></h1>
+    <p class="sub">The exact drills placement tests throw at you — memory, speed, logic, pattern
+      spotting and planning. Short rounds, live scoring, streaks that actually mean something.</p>
+    <div class="facts">
+      <span class="fact"><b>4 min</b> a run</span>
+      <span class="fact"><b>5</b> games</span>
+      <span class="fact">works <b>offline</b></span>
+      <span class="fact">built for <b>phones</b></span>
+    </div>
+  </header>
 
-<main class="grid" id="grid"></main>
+  <main class="grid" id="grid"></main>
 
-<footer>
-  Everything runs offline in your browser. Progress is not stored — each run starts fresh.
-</footer>
+  <footer>
+    Nothing is saved and nothing is sent — every run starts fresh.<br>
+    <b>Tip:</b> a wrong answer costs you, so a fast guess is worse than a slow read.
+  </footer>
+</div>
 
 <script>
   var GAMES = [
     {
-      title:'Deductive Challenge', skill:'Processing speed', href:'deductive.html', bg:'#183B56',
-      art:'<rect width="100" height="100" fill="#183B56"/>' +
-          '<g stroke="#fff" stroke-width="2" fill="#fff">' +
-          '<rect x="14" y="14" width="24" height="24"/><rect x="38" y="14" width="24" height="24"/>' +
-          '<rect x="62" y="14" width="24" height="24"/><rect x="14" y="38" width="24" height="24"/>' +
-          '<rect x="38" y="38" width="24" height="24"/><rect x="62" y="38" width="24" height="24"/>' +
-          '<rect x="14" y="62" width="24" height="24"/><rect x="38" y="62" width="24" height="24"/>' +
-          '<rect x="62" y="62" width="24" height="24"/></g>' +
-          '<polygon points="74,18 84,34 64,34" fill="#1565D8"/>' +
-          '<path d="M22 44h8v-8h8v8h8v8h-8v8h-8v-8h-8z" fill="#FFD15C"/>' +
-          '<rect x="42" y="42" width="16" height="16" fill="#F3705A"/>' +
-          '<circle cx="26" cy="74" r="8" fill="#15803D"/>' +
-          '<text x="50" y="80" font-size="18" font-weight="700" fill="#183B56" text-anchor="middle">?</text>'
+      title:'Deductive', href:'deductive.html', tint:'rgba(75,141,248,.5)',
+      line:'One cell is missing. No symbol repeats in a row or column — work out what belongs.',
+      badges:[['⚡ Speed','cool'],['🧩 Logic','']], diff:2,
+      art:'<rect width="160" height="100" fill="#12293D"/>' +
+          '<g fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.16)">' +
+          '<rect x="34" y="14" width="26" height="24" rx="5"/><rect x="64" y="14" width="26" height="24" rx="5"/>' +
+          '<rect x="94" y="14" width="26" height="24" rx="5"/><rect x="34" y="42" width="26" height="24" rx="5"/>' +
+          '<rect x="64" y="42" width="26" height="24" rx="5"/><rect x="94" y="42" width="26" height="24" rx="5"/>' +
+          '<rect x="34" y="70" width="26" height="24" rx="5"/><rect x="64" y="70" width="26" height="24" rx="5"/>' +
+          '<rect x="94" y="70" width="26" height="24" rx="5"/></g>' +
+          '<circle cx="47" cy="26" r="8" fill="#3DD68C"/>' +
+          '<polygon points="77,19 86,34 68,34" fill="#4B8DF8"/>' +
+          '<rect x="99" y="47" width="16" height="16" rx="3" fill="#F3705A"/>' +
+          '<text x="77" y="89" font-size="20" font-weight="800" fill="#FFD15C" text-anchor="middle" font-family="Poppins,sans-serif">?</text>'
     },
     {
-      title:'Swith Challenge', skill:'Power of logical thinking', href:'swith.html', bg:'#1565D8',
-      art:'<rect width="100" height="100" fill="#1565D8"/>' +
-          '<g fill="#FFD15C">' +
-          '<circle cx="18" cy="18" r="7"/><rect x="30" y="11" width="14" height="14"/>' +
-          '<text x="56" y="24" font-size="18" font-weight="700" fill="#FFD15C" text-anchor="middle">%</text>' +
-          '<path d="M72 11h6v7h7v6h-7v7h-6v-7h-7v-6h7z"/>' +
-          '<polygon points="92,10 99,25 85,25"/></g>' +
-          '<rect x="26" y="40" width="48" height="13" rx="2" fill="#fff"/>' +
-          '<text x="50" y="50" font-size="9" font-weight="700" fill="#183B56" text-anchor="middle">426315</text>' +
-          '<polygon points="50,58 58,68 53,68 53,76 47,76 47,68 42,68" fill="#FFD15C"/>' +
-          '<g fill="#FFD15C"><circle cx="18" cy="88" r="7"/>' +
-          '<path d="M30 81l12 12M42 81L30 93" stroke="#FFD15C" stroke-width="5"/>' +
-          '<polygon points="56,80 63,95 49,95"/>' +
-          '<path d="M72 81h6v7h7v6h-7v7h-6v-7h-7v-6h7z"/>' +
-          '<rect x="86" y="81" width="13" height="13"/></g>'
+      title:'Swith', href:'swith.html', tint:'rgba(255,209,92,.42)',
+      line:'Symbols go in, symbols come out shuffled. Crack the code that maps one to the other.',
+      badges:[['🔀 Logic','']], diff:3,
+      art:'<rect width="160" height="100" fill="#12293D"/>' +
+          '<g fill="#FFD15C"><circle cx="46" cy="20" r="8"/><rect x="62" y="12" width="16" height="16" rx="3"/>' +
+          '<polygon points="96,12 105,28 87,28"/><path d="M118 12h8v8h8v8h-8v8h-8v-8h-8v-8h8z"/></g>' +
+          '<rect x="34" y="42" width="92" height="18" rx="6" fill="rgba(255,255,255,.1)" stroke="rgba(255,255,255,.2)"/>' +
+          '<text x="80" y="55" font-size="13" font-weight="800" fill="#EAF2FC" text-anchor="middle" font-family="Poppins,sans-serif">3241</text>' +
+          '<g fill="#4B8DF8"><polygon points="46,72 55,88 37,88"/><rect x="62" y="72" width="16" height="16" rx="3"/>' +
+          '<path d="M96 72h8v8h8v8h-8v8h-8v-8h-8v-8h8z"/><circle cx="126" cy="80" r="8"/></g>'
     },
     {
-      title:'Grid Challenge', skill:'Power of attention, memory', href:'grid.html', bg:'#E4EEF9',
-      art:'<rect width="100" height="100" fill="#E4EEF9"/>' +
-          '<text x="50" y="14" font-size="9" fill="#183B56" text-anchor="middle">Symmetric?</text>' +
-          '<g fill="#475569">' +
-          '<rect x="16" y="24" width="7" height="7"/><rect x="27" y="24" width="7" height="7"/>' +
-          '<rect x="16" y="35" width="7" height="7"/><circle cx="30.5" cy="38.5" r="2"/>' +
-          '<rect x="16" y="46" width="7" height="7"/><rect x="27" y="46" width="7" height="7"/>' +
-          '<rect x="62" y="24" width="7" height="7"/><rect x="73" y="24" width="7" height="7"/>' +
-          '<circle cx="65.5" cy="38.5" r="2"/><rect x="73" y="35" width="7" height="7"/>' +
-          '<rect x="62" y="46" width="7" height="7"/><rect x="73" y="46" width="7" height="7"/></g>' +
-          '<text x="50" y="42" font-size="14" fill="#183B56" text-anchor="middle">=</text>' +
-          '<g fill="#94A3B8"><circle cx="30" cy="72" r="5"/><circle cx="50" cy="82" r="5"/>' +
-          '<circle cx="70" cy="70" r="5"/><circle cx="42" cy="90" r="5"/>' +
-          '<circle cx="62" cy="90" r="5"/></g>' +
-          '<circle cx="50" cy="68" r="5" fill="#15803D"/>'
+      title:'Grid', href:'grid.html', tint:'rgba(61,214,140,.4)',
+      line:'Hold three dots in your head while symmetry questions try to knock them out.',
+      badges:[['🧠 Memory','mint'],['🔥 Hard','hot']], diff:4,
+      art:'<rect width="160" height="100" fill="#12293D"/>' +
+          '<g fill="rgba(255,255,255,.22)">' +
+          '<circle cx="28" cy="24" r="6"/><circle cx="58" cy="16" r="6"/><circle cx="92" cy="26" r="6"/>' +
+          '<circle cx="128" cy="18" r="6"/><circle cx="40" cy="52" r="6"/>' +
+          '<circle cx="112" cy="54" r="6"/><circle cx="26" cy="80" r="6"/><circle cx="62" cy="82" r="6"/>' +
+          '<circle cx="98" cy="76" r="6"/><circle cx="132" cy="84" r="6"/></g>' +
+          '<circle cx="74" cy="46" r="9" fill="#3DD68C"/>' +
+          '<circle cx="74" cy="46" r="16" fill="none" stroke="#3DD68C" stroke-opacity=".35" stroke-width="3"/>'
     },
     {
-      title:'Inductive Challenge', skill:'Recognition', href:'inductive.html', bg:'#DCE3EB',
-      art:'<rect width="100" height="100" fill="#DCE3EB"/>' +
-          '<g stroke="#475569" stroke-width="1.5" fill="#fff">' +
-          '<rect x="14" y="14" width="24" height="24"/><rect x="38" y="14" width="24" height="24"/>' +
-          '<rect x="62" y="14" width="24" height="24"/><rect x="14" y="38" width="24" height="24"/>' +
-          '<rect x="38" y="38" width="24" height="24"/><rect x="62" y="38" width="24" height="24"/>' +
-          '<rect x="14" y="62" width="24" height="24"/><rect x="38" y="62" width="24" height="24"/>' +
-          '<rect x="62" y="62" width="24" height="24"/></g>' +
-          '<polygon points="26,20 34,33 18,33" fill="#1565D8"/>' +
-          '<circle cx="50" cy="26" r="8" fill="#7C3AED"/>' +
-          '<rect x="66" y="18" width="16" height="16" fill="#15803D"/>' +
-          '<path d="M22 44h8v-6h8v6h8v8h-8v6h-8v-6h-8z" fill="#F3705A"/>' +
-          '<path d="M46 44h8v-6h8v6h8v8h-8v6h-8v-6h-8z" fill="#F3705A"/>' +
-          '<rect x="66" y="42" width="16" height="16" fill="#15803D"/>' +
-          '<circle cx="26" cy="74" r="8" fill="#7C3AED"/>' +
-          '<rect x="42" y="66" width="16" height="16" fill="#15803D"/>' +
-          '<path d="M70 68h8v-6h0v6h8v8h-8v6h-8v-6h-8z" fill="#F3705A"/>'
+      title:'Inductive', href:'inductive.html', tint:'rgba(155,123,255,.45)',
+      line:'Two grids hide a rule. Spot it, then find the pair that plays by the same rule.',
+      badges:[['👁 Patterns','grape']], diff:3,
+      art:'<rect width="160" height="100" fill="#12293D"/>' +
+          '<g stroke="rgba(255,255,255,.18)" fill="rgba(255,255,255,.06)">' +
+          '<rect x="16" y="22" width="18" height="18" rx="4"/><rect x="36" y="22" width="18" height="18" rx="4"/>' +
+          '<rect x="16" y="42" width="18" height="18" rx="4"/><rect x="36" y="42" width="18" height="18" rx="4"/>' +
+          '<rect x="104" y="22" width="18" height="18" rx="4"/><rect x="124" y="22" width="18" height="18" rx="4"/>' +
+          '<rect x="104" y="42" width="18" height="18" rx="4"/><rect x="124" y="42" width="18" height="18" rx="4"/></g>' +
+          '<circle cx="25" cy="31" r="6" fill="#9B7BFF"/><rect x="40" y="26" width="10" height="10" rx="2" fill="#3DD68C"/>' +
+          '<polygon points="25,47 31,57 19,57" fill="#4B8DF8"/>' +
+          '<rect x="108" y="26" width="10" height="10" rx="2" fill="#3DD68C"/><circle cx="133" cy="31" r="6" fill="#9B7BFF"/>' +
+          '<polygon points="133,47 139,57 127,57" fill="#4B8DF8"/>' +
+          '<text x="80" y="47" font-size="18" font-weight="800" fill="#FFD15C" text-anchor="middle" font-family="Poppins,sans-serif">→</text>' +
+          '<text x="80" y="84" font-size="11" font-weight="700" fill="#A9BDD6" text-anchor="middle" font-family="Poppins,sans-serif">same rule?</text>'
     },
     {
-      title:'Motion Challenge', skill:'Imagination, decision making, time management',
-      href:'motion.html', bg:'#12293D',
-      art:'<rect width="100" height="100" fill="#12293D"/>' +
-          '<g fill="#DCDCDC">' +
-          '<rect x="14" y="14" width="16" height="16"/><rect x="32" y="14" width="16" height="16"/>' +
-          '<rect x="50" y="14" width="16" height="16"/><rect x="68" y="14" width="16" height="16"/>' +
-          '<rect x="14" y="32" width="16" height="16"/><rect x="68" y="32" width="16" height="16"/>' +
-          '<rect x="14" y="50" width="16" height="16"/><rect x="32" y="50" width="16" height="16"/>' +
-          '<rect x="14" y="68" width="16" height="16"/><rect x="68" y="68" width="16" height="16"/></g>' +
-          '<rect x="32" y="32" width="16" height="16" fill="#F3705A"/>' +
-          '<rect x="50" y="32" width="16" height="16" fill="#7C3AED"/>' +
-          '<rect x="50" y="50" width="16" height="16" fill="#FFD15C"/>' +
-          '<rect x="68" y="50" width="16" height="16" fill="#38BDF8"/>' +
-          '<rect x="32" y="68" width="16" height="16" fill="#1565D8"/>' +
-          '<circle cx="76" cy="22" r="6" fill="#183B56"/>' +
-          '<circle cx="58" cy="76" r="6" fill="#F3705A"/>'
+      title:'Motion', href:'motion.html', tint:'rgba(243,112,90,.42)',
+      line:'Blocks in the way, a limited number of moves. Clear a path and sink the ball.',
+      badges:[['🎯 Planning','hot'],['🔥 Hard','']], diff:4,
+      art:'<rect width="160" height="100" fill="#12293D"/>' +
+          '<g fill="rgba(255,255,255,.07)">' +
+          '<rect x="44" y="10" width="18" height="18" rx="4"/><rect x="64" y="10" width="18" height="18" rx="4"/>' +
+          '<rect x="84" y="10" width="18" height="18" rx="4"/><rect x="44" y="30" width="18" height="18" rx="4"/>' +
+          '<rect x="84" y="30" width="18" height="18" rx="4"/><rect x="44" y="50" width="18" height="18" rx="4"/>' +
+          '<rect x="64" y="50" width="18" height="18" rx="4"/><rect x="44" y="70" width="18" height="18" rx="4"/>' +
+          '<rect x="84" y="70" width="18" height="18" rx="4"/></g>' +
+          '<rect x="104" y="10" width="18" height="18" rx="4" fill="#FFD15C"/>' +
+          '<rect x="104" y="30" width="18" height="18" rx="4" fill="#FFD15C"/>' +
+          '<rect x="64" y="30" width="18" height="18" rx="4" fill="#9B7BFF"/>' +
+          '<rect x="84" y="50" width="18" height="18" rx="4" fill="#4B8DF8"/>' +
+          '<circle cx="113" cy="79" r="8" fill="#F3705A"/>' +
+          '<circle cx="73" cy="19" r="7" fill="#08121E" stroke="rgba(255,255,255,.25)"/>'
     }
   ];
 
   var grid = document.getElementById('grid');
   GAMES.forEach(function (g){
-    var card = document.createElement('article');
+    var badges = g.badges.map(function (b){
+      return '<span class="badge ' + b[1] + '">' + b[0] + '</span>';
+    }).join('');
+    var dots = '';
+    for (var i = 1; i <= 5; i++) dots += '<i class="' + (i <= g.diff ? 'on' : '') + '"></i>';
+
+    var card = document.createElement('a');
     card.className = 'card';
+    card.href = g.href;
+    card.style.setProperty('--tint', g.tint);
     card.innerHTML =
-      '<div class="thumb" style="background:' + g.bg + '">' +
-        '<svg viewBox="0 0 100 100" aria-hidden="true">' + g.art + '</svg>' +
+      '<div class="thumb">' +
+        '<svg viewBox="0 0 160 100" aria-hidden="true">' + g.art + '</svg>' +
+        '<div class="badges">' + badges + '</div>' +
       '</div>' +
       '<h2>' + g.title + '</h2>' +
-      '<div class="skill">' + g.skill + '</div>' +
-      '<a href="' + g.href + '">Play</a>';
+      '<p class="line">' + g.line + '</p>' +
+      '<div class="meta">' +
+        '<span class="diff"><span class="dots">' + dots + '</span> effort</span>' +
+        '<span class="go">Play →</span>' +
+      '</div>';
     grid.appendChild(card);
   });
 </script>

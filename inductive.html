@@ -9,24 +9,32 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="common.css">
 <style>
-  body{background:#F2F6FB}
   .board{align-items:stretch}
   .panes{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.25fr); gap:14px; width:100%}
   @media (max-width:860px){ .panes{grid-template-columns:minmax(0,1fr)} }
-  .pane{background:#E4EAF1; border-radius:3px; padding:14px; display:flex; flex-direction:column;
-    align-items:center; gap:14px}
-  .pane h3{margin:0; font-weight:600; font-size:clamp(14px,2vw,22px); color:#183B56; text-align:center}
+  .pane{
+    background:linear-gradient(165deg,rgba(255,255,255,.075),rgba(255,255,255,.025));
+    border:1px solid var(--stroke); border-radius:20px; padding:16px;
+    display:flex; flex-direction:column; align-items:center; gap:14px;
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  }
+  .pane h3{margin:0; font-weight:700; font-size:clamp(13.5px,1.9vw,19px); color:var(--ink-2);
+    text-align:center; letter-spacing:-.01em}
   .pairs{display:flex; flex-direction:column; gap:clamp(10px,2.4vh,26px); align-items:center}
   .choices{display:grid; grid-template-columns:1fr 1fr; gap:clamp(10px,2vw,26px)}
-  .grid3{display:grid; grid-template-columns:repeat(3,auto); background:#183B56; gap:1px;
-    border:1px solid #183B56; cursor:default}
-  .grid3.sel{outline:4px solid var(--orange); outline-offset:2px}
-  .grid3.right{outline:4px solid var(--green); outline-offset:2px}
-  .grid3.wrong{outline:4px solid var(--red); outline-offset:2px}
+  .grid3{display:grid; grid-template-columns:repeat(3,auto); gap:4px; padding:4px;
+    border-radius:14px; background:rgba(255,255,255,.06); border:1px solid var(--stroke);
+    cursor:default; transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease}
+  .grid3.sel{border-color:var(--amber); box-shadow:0 0 0 3px rgba(255,209,92,.45), 0 0 30px rgba(255,209,92,.25);
+    transform:translateY(-3px)}
+  .grid3.right{border-color:var(--green-lite); box-shadow:0 0 0 3px rgba(61,214,140,.5)}
+  .grid3.wrong{border-color:var(--coral); box-shadow:0 0 0 3px rgba(243,112,90,.5)}
   .grid3.pickable{cursor:pointer}
-  .grid3.pickable:hover{outline:3px solid #7FA6D8; outline-offset:2px}
-  .gc{width:clamp(30px,4.6vw,56px); height:clamp(30px,4.6vw,56px); background:#fff;
-    display:grid; place-items:center}
+  .grid3.pickable:hover{transform:translateY(-4px); border-color:var(--stroke-2);
+    box-shadow:0 14px 28px rgba(0,0,0,.4)}
+  .grid3.pickable:active{transform:translateY(-1px) scale(.98)}
+  .gc{width:clamp(28px,4.4vw,52px); height:clamp(28px,4.4vw,52px); border-radius:9px;
+    background:rgba(255,255,255,.1); display:grid; place-items:center}
   .gc svg{width:66%; height:66%}
   .hintbar{flex:none; height:8px; background:#D2D2D2; margin:0 16px 8px; border-radius:2px; overflow:hidden}
   .hintbar i{display:block; height:100%; width:100%; background:var(--green); transform-origin:left}
@@ -250,17 +258,14 @@
   CG.create({
     name:'Inductive Challenge',
     tag:'Recognition',
-    prompt:'Pick the two grids that follow the same rule',
-    intro:['In this game in each level you will be shown two grids with different shapes arranged ' +
-           'in different patterns. The second grid has a small change in the pattern of shapes from ' +
-           'the first one. The change of pattern in the second grid follows a particular rule.',
-           'Along with the two grids you will be shown four grids with different shapes arranged in ' +
-           'different patterns. Now your task is to find the rule followed in the change of pattern ' +
-           'in the first two grids and then find the two grids from the given four which follow the ' +
-           'same rule in the change of pattern.'],
-    howto:['Correct answer will add the score by 3 points.',
-           'Wrong answer will subtract the score by 1 point.',
-           'Each Level appears for 30 seconds.'],
+    prompt:'Same rule — find the pair 🧩',
+    intro:['Two grids on the left hide one rule: every shape turns into a different shape, and ' +
+           'nothing moves.',
+           'Crack that rule, then pick the two grids on the right that follow it — one before, one ' +
+           'after. The other two are playing by a different rule entirely.'],
+    howto:['+3 for the right pair, −1 for a wrong one',
+           'Pick exactly two grids',
+           '30 seconds a level'],
     session:240,
     levelTime:30,
     pointsRight:3, pointsWrong:1, scoreFull:60,

@@ -9,20 +9,30 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="common.css">
 <style>
-  body{background:#F2F6FB}
-  .wrap{display:flex; flex-direction:column; align-items:center; gap:clamp(18px,4vh,46px)}
-  .matrix{display:grid; gap:6px}
-  .cell{width:clamp(56px,10vw,98px); height:clamp(56px,10vw,98px); background:#fff;
-    border:1px solid #D1D8DD; display:grid; place-items:center}
-  .cell.q{font-weight:700; font-size:clamp(30px,5vw,52px); color:#183B56}
-  .options{display:flex; gap:clamp(12px,3vw,34px)}
-  .opt{width:clamp(58px,10vw,96px); height:clamp(58px,10vw,96px); background:#fff;
-    border:1px solid #D1D8DD; display:grid; place-items:center; cursor:pointer;
-    transition:transform .12s, box-shadow .12s}
-  .opt:hover{transform:translateY(-3px); box-shadow:0 6px 14px rgba(0,0,0,.16)}
-  .opt.right{box-shadow:0 0 0 3px var(--green) inset}
-  .opt.wrong{box-shadow:0 0 0 3px var(--red) inset}
-  svg{display:block; width:70%; height:70%}
+  .wrap{display:flex; flex-direction:column; align-items:center; gap:clamp(18px,4vh,44px)}
+  .matrix{display:grid; gap:8px}
+  .cell{
+    width:clamp(54px,9.6vw,94px); height:clamp(54px,9.6vw,94px); border-radius:14px;
+    background:var(--glass); border:1px solid var(--stroke); display:grid; place-items:center;
+  }
+  .cell.q{
+    font-weight:800; font-size:clamp(28px,4.6vw,48px); color:var(--amber);
+    background:rgba(255,209,92,.1); border-color:rgba(255,209,92,.45);
+    box-shadow:0 0 28px rgba(255,209,92,.18) inset;
+  }
+  .options{display:flex; gap:clamp(10px,2.6vw,26px); flex-wrap:wrap; justify-content:center}
+  .opt{
+    width:clamp(56px,9.6vw,92px); height:clamp(56px,9.6vw,92px); border-radius:16px;
+    background:linear-gradient(165deg,rgba(255,255,255,.1),rgba(255,255,255,.03));
+    border:1px solid var(--stroke); display:grid; place-items:center; cursor:pointer;
+    transition:transform .15s cubic-bezier(.2,1.2,.4,1), box-shadow .15s, border-color .15s;
+  }
+  .opt:hover{transform:translateY(-5px); border-color:var(--stroke-2);
+    box-shadow:0 14px 28px rgba(0,0,0,.4)}
+  .opt:active{transform:translateY(-1px) scale(.95)}
+  .opt.right{border-color:var(--green-lite); box-shadow:0 0 0 3px rgba(61,214,140,.5), 0 0 30px rgba(61,214,140,.35)}
+  .opt.wrong{border-color:var(--coral); box-shadow:0 0 0 3px rgba(243,112,90,.5)}
+  svg{display:block; width:68%; height:68%}
 
 /* ---------- feedback widget ---------- */
 .nfb-fab,.nfb-back{
@@ -224,13 +234,13 @@
   CG.create({
     name:'Deductive Challenge',
     tag:'Processing Speed',
-    prompt:'Please choose the correct answer',
-    intro:['At the beginning of the game, a matrix like 3×3, 4×4, 5×5 etc is displayed on the ' +
-           'screen with different symbols without a picturesque manner. To make it a picturesque ' +
-           'matrix, you have to select appropriate symbols from the options given below.'],
-    howto:['Time duration is 4 minutes.',
-           'Neither a row nor a column should have similar symbols.',
-           'One mark is added for each correct attempt and one mark is subtracted for each wrong attempt.'],
+    prompt:'Which one fits? 👀',
+    intro:['A grid of symbols with one cell left blank. No symbol may repeat in a row or a ' +
+           'column, so exactly one of the options below actually fits.',
+           'Grids grow from 3×3 to 5×5 as you climb. Read the row, read the column, then tap.'],
+    howto:['+1 for a correct pick, −1 for a wrong one',
+           'No symbol repeats in any row or column',
+           '20–30 seconds a grid · 4 minutes total'],
     session:240,
     levelTime:function (level){ return level < 4 ? 20 : level < 8 ? 25 : 30; },
     pointsRight:1, pointsWrong:1, scoreFull:40,
