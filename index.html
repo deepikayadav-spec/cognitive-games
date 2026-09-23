@@ -42,7 +42,8 @@
   }
   .mark .box{
     width:30px; height:30px; border-radius:9px; display:grid; place-items:center;
-    background:var(--grad-amber); color:#2A1200; font-weight:800; font-size:15px;
+    background:linear-gradient(180deg,#FFE08A,#FFB020); color:#2A1200; font-weight:800; font-size:15px;
+    box-shadow:0 3px 0 #A9761B, inset 0 1px 0 rgba(255,255,255,.6);
   }
   .mark span{font-weight:700; font-size:12.5px; letter-spacing:.14em; color:var(--ink-2)}
 
@@ -81,14 +82,22 @@
     background:radial-gradient(closest-side, var(--tint), transparent 70%);
     pointer-events:none;
   }
-  .card:hover{transform:translateY(-6px); border-color:var(--stroke-2);
-    box-shadow:0 22px 46px rgba(0,0,0,.42)}
+  .card{
+    box-shadow:0 10px 0 rgba(0,0,0,.22), 0 20px 40px rgba(0,0,0,.4),
+      inset 0 1px 0 rgba(255,255,255,.22);
+  }
+  .card:hover{transform:translateY(-8px) rotate(-.4deg); border-color:var(--stroke-2);
+    box-shadow:0 14px 0 rgba(0,0,0,.24), 0 30px 58px rgba(0,0,0,.5),
+      inset 0 1px 0 rgba(255,255,255,.3)}
   .card:active{transform:translateY(-2px) scale(.99)}
+  .card:nth-child(even):hover{transform:translateY(-8px) rotate(.4deg)}
 
   .thumb{
     width:100%; aspect-ratio:16/10; border-radius:16px; overflow:hidden; position:relative;
     border:1px solid var(--stroke); background:var(--navy-2);
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.12), inset 0 -18px 30px rgba(0,0,0,.35);
   }
+  .thumb svg{filter:drop-shadow(0 3px 4px rgba(0,0,0,.5))}
   .thumb svg{width:100%; height:100%; display:block}
   .thumb::before{
     content:''; position:absolute; inset:0 0 auto; height:52px; pointer-events:none;
@@ -97,7 +106,9 @@
   .badges{position:absolute; left:10px; top:10px; display:flex; gap:6px; flex-wrap:wrap; z-index:2}
   .badge{
     font-size:11px; font-weight:700; padding:5px 10px; border-radius:99px; color:#08121E;
-    background:var(--amber); box-shadow:0 4px 12px rgba(0,0,0,.35);
+    background:var(--amber);
+    box-shadow:0 3px 0 rgba(0,0,0,.3), 0 6px 14px rgba(0,0,0,.35),
+      inset 0 1px 0 rgba(255,255,255,.55);
   }
   .badge.cool{background:var(--brand-lite); color:#04101F}
   .badge.hot{background:var(--coral); color:#2A0A04}
@@ -114,8 +125,10 @@
   .dots i.on{background:var(--amber)}
   .go{
     display:inline-flex; align-items:center; gap:7px; font-size:14px; font-weight:800; color:#fff;
-    padding:10px 20px; border-radius:99px; background:var(--grad-brand);
-    box-shadow:0 8px 22px rgba(21,101,216,.4); transition:transform .15s ease;
+    padding:10px 20px; border-radius:99px; background:linear-gradient(180deg,#4B8DF8,#1565D8);
+    box-shadow:0 5px 0 #0B3C8C, 0 12px 22px rgba(21,101,216,.45),
+      inset 0 1px 0 rgba(255,255,255,.4);
+    transition:transform .15s ease, box-shadow .15s ease;
   }
   .card:hover .go{transform:translateX(3px)}
 

@@ -34,22 +34,122 @@ window.CG = (function () {
   function pick(a){ return a[(Math.random() * a.length) | 0]; }
   function randInt(n){ return (Math.random() * n) | 0; }
 
-  /* ---------- sound: short blips, no audio files ---------- */
-  var actx = null, muted = false;
-  function beep(freq, ms, type){
-    if (muted) return;
+  /* ---------- sound ----------
+     One small synth: every cue is a few oscillators through an envelope and a
+     shared lowpass, so nothing is loaded from disk and the games still work
+     offline. Browsers block audio until the first gesture, so the context is
+     created lazily and resumed on the first tap.                             */
+  var actx = null, master = null, muted = false;
+
+  function audio(){
+    if (muted) return null;
     try {
-      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
-      var o = actx.createOscillator(), g = actx.createGain();
-      o.type = type || 'sine'; o.frequency.value = freq;
-      g.gain.setValueAtTime(0.06, actx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + ms / 1000);
-      o.connect(g); g.connect(actx.destination);
-      o.start(); o.stop(actx.currentTime + ms / 1000);
-    } catch (e) { /* blocked audio never blocks the game */ }
+      if (!actx){
+        actx = new (window.AudioContext || window.webkitAudioContext)();
+        master = actx.createGain();
+        master.gain.value = 0.22;
+        var warm = actx.createBiquadFilter();
+        warm.type = 'lowpass';
+        warm.frequency.value = 5200;
+        master.connect(warm);
+        warm.connect(actx.destination);
+      }
+      if (actx.state === 'suspended') actx.resume();
+      return actx;
+    } catch (e){ return null; }
   }
-  function chime(){                                   /* three rising notes */
-    [660, 880, 1170].forEach(function (f, i){ setTimeout(function (){ beep(f, 120); }, i * 90); });
+  document.addEventListener('pointerdown', function once(){
+    audio();
+    document.removeEventListener('pointerdown', once);
+  }, {passive:true});
+
+  /* one voice: freq (optionally gliding), a shape, and an ADSR-ish envelope */
+  function voice(opt){
+    var ctx = audio();
+    if (!ctx) return;
+    var t0 = ctx.currentTime + (opt.delay || 0);
+    var dur = opt.dur || 0.18;
+    var o = ctx.createOscillator();
+    var g = ctx.createGain();
+    o.type = opt.type || 'sine';
+    o.frequency.setValueAtTime(opt.freq, t0);
+    if (opt.to) o.frequency.exponentialRampToValueAtTime(Math.max(30, opt.to), t0 + dur);
+    if (opt.detune) o.detune.setValueAtTime(opt.detune, t0);
+
+    var peak = opt.peak === undefined ? 0.5 : opt.peak;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(peak, t0 + (opt.attack || 0.008));
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+    o.connect(g); g.connect(master);
+    o.start(t0); o.stop(t0 + dur + 0.02);
+  }
+  function chord(freqs, opt){
+    opt = opt || {};
+    freqs.forEach(function (f, i){
+      voice({freq:f, type:opt.type || 'triangle', dur:opt.dur || 0.22,
+             peak:(opt.peak || 0.4) / (1 + i * 0.25), delay:(opt.delay || 0) + i * (opt.gap || 0.07),
+             attack:opt.attack});
+    });
+  }
+
+  /* the cues the games actually use */
+  var SFX = {
+    tap:    function (){ voice({freq:300, type:'square', dur:0.05, peak:0.16}); },
+    select: function (){ voice({freq:640, type:'triangle', dur:0.09, peak:0.3});
+                         voice({freq:960, type:'sine', dur:0.07, peak:0.14, delay:0.02}); },
+    move:   function (){ voice({freq:420, type:'sine', dur:0.08, peak:0.26, to:520}); },
+    blocked:function (){ voice({freq:150, type:'square', dur:0.07, peak:0.2, to:110}); },
+    correct:function (){ chord([523.25, 659.25, 783.99], {gap:0.055, dur:0.26, peak:0.45});
+                         voice({freq:1567, type:'sine', dur:0.2, peak:0.1, delay:0.14}); },
+    streak: function (){ chord([659.25, 830.61, 987.77, 1318.5],
+                               {gap:0.055, dur:0.3, peak:0.5, type:'triangle'});
+                         voice({freq:2093, type:'sine', dur:0.34, peak:0.09, delay:0.2}); },
+    wrong:  function (){ voice({freq:196, type:'sawtooth', dur:0.26, peak:0.32, to:110});
+                         voice({freq:190, type:'square', dur:0.2, peak:0.1, detune:18}); },
+    levelUp:function (){ chord([392, 523.25, 659.25, 1046.5], {gap:0.045, dur:0.24, peak:0.38}); },
+    tick:   function (){ voice({freq:1180, type:'sine', dur:0.045, peak:0.12}); },
+    start:  function (){ chord([261.63, 392, 523.25], {gap:0.06, dur:0.3, peak:0.35}); },
+    over:   function (){ chord([523.25, 392, 311.13, 261.63], {gap:0.12, dur:0.5, peak:0.4,
+                               type:'triangle'}); },
+    win:    function (){ chord([523.25, 659.25, 783.99, 1046.5, 1318.5],
+                               {gap:0.08, dur:0.44, peak:0.45}); }
+  };
+  function sfx(name){ if (SFX[name]) SFX[name](); }
+
+  /* kept so older calls keep working */
+  function beep(freq, ms, type){
+    voice({freq:freq, type:type === 'square' ? 'square' : 'sine', dur:(ms || 140) / 1000, peak:0.3});
+  }
+  function chime(){ sfx('streak'); }
+  function setMuted(v){
+    muted = !!v;
+    if (master) master.gain.value = muted ? 0 : 0.22;
+  }
+  function isMuted(){ return muted; }
+
+  /* ---------- colour helpers, for shapes that need depth ---------- */
+  function shade(hex, amt){
+    var n = parseInt(hex.slice(1), 16);
+    var r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    var f = function (c){
+      return Math.max(0, Math.min(255, Math.round(amt > 0 ? c + (255 - c) * amt : c * (1 + amt))));
+    };
+    return '#' + ((1 << 24) + (f(r) << 16) + (f(g) << 8) + f(b)).toString(16).slice(1);
+  }
+  var gradSeq = 0;
+  /* a top-lit gradient plus its id, so an SVG shape reads as a solid object */
+  function grad(colour){
+    var id = 'g' + (++gradSeq);
+    return {
+      id: id,
+      defs: '<defs><linearGradient id="' + id + '" x1="0" y1="0" x2="0" y2="1">' +
+            '<stop offset="0" stop-color="' + shade(colour, 0.34) + '"/>' +
+            '<stop offset="0.55" stop-color="' + colour + '"/>' +
+            '<stop offset="1" stop-color="' + shade(colour, -0.3) + '"/>' +
+            '</linearGradient></defs>',
+      fill: 'url(#' + id + ')'
+    };
   }
 
   /* ---------- confetti ---------- */
@@ -226,7 +326,9 @@ window.CG = (function () {
         if (S.paused){ levelDeadline += 250; return; }
         S.levelLeft = (levelDeadline - Date.now()) / 1000;
         clockEl.textContent = fmt(S.levelLeft);
-        clockEl.classList.toggle('low', S.levelLeft <= 5);
+        var low = S.levelLeft <= 5;
+        if (low && !clockEl.classList.contains('low')) sfx('tick');
+        clockEl.classList.toggle('low', low);
         if (S.levelLeft <= 0){
           stopLevelClock();
           if (!S.locked) api.wrong('too slow');
@@ -238,7 +340,8 @@ window.CG = (function () {
       level: function (){ return S.level; },
       score: function (){ return S.score; },
       board: board,
-      el: el, shuffle: shuffle, pick: pick, randInt: randInt, beep: beep, confetti: confetti,
+      el: el, shuffle: shuffle, pick: pick, randInt: randInt,
+      beep: beep, sfx: sfx, confetti: confetti, grad: grad, shade: shade,
 
       right: function (msg, points){
         if (S.locked) return;
@@ -250,7 +353,7 @@ window.CG = (function () {
         setScore(S.score + gain);
         flash(msg || ('+' + gain), true);
         showStreak();
-        if (S.streak >= 3){ chime(); confetti(34); } else { beep(880, 140); confetti(16); }
+        if (S.streak >= 3){ sfx('streak'); confetti(34); } else { sfx('correct'); confetti(16); }
         stopLevelClock();
         api.after(cfg.nextDelay || 700, api.nextLevel);
       },
@@ -263,7 +366,7 @@ window.CG = (function () {
         var loss = points === undefined ? cfg.pointsWrong : points;
         setScore(S.score - loss);
         flash(msg || ('−' + loss), false);
-        beep(220, 200, 'square');
+        sfx('wrong');
         stopLevelClock();
         api.after(cfg.nextDelay || 700, api.nextLevel);
       },
@@ -345,6 +448,7 @@ window.CG = (function () {
           shareBtn.textContent = 'Select + copy';
         }
       };
+      sfx(S.score > 0 ? 'win' : 'over');
       if (S.score > 0) confetti(46);
       endEl.hidden = false;
     }
@@ -360,6 +464,7 @@ window.CG = (function () {
       sessionFill.style.transform = 'scaleX(1)';
       introEl.hidden = true; pauseEl.hidden = true; endEl.hidden = true;
       sessionTimer = setInterval(tickSession, 250);
+      sfx('start');
       runLevel();
     }
 
@@ -380,13 +485,17 @@ window.CG = (function () {
     btnResume.addEventListener('click', function (){ togglePause(false); });
     btnPause.addEventListener('click', function (){ togglePause(); });
     btnSound.addEventListener('click', function (){
-      muted = !muted;
-      btnSound.textContent = muted ? '🔇' : '🔊';
+      setMuted(!isMuted());
+      btnSound.textContent = isMuted() ? '🔇' : '🔊';
+      if (!isMuted()) sfx('select');
     });
     window.addEventListener('keydown', function (e){
       var t = e.target;
       if (t && (t.tagName === 'TEXTAREA' || t.tagName === 'INPUT')) return;
       if (e.key.toLowerCase() === 'p') togglePause();
+    });
+    [btnPlay, btnAgain, btnRestart, btnResume, btnPause].forEach(function (b){
+      b.addEventListener('pointerdown', function (){ sfx('tap'); });
     });
 
     return api;
@@ -394,6 +503,8 @@ window.CG = (function () {
 
   return {
     create:create, el:el, shuffle:shuffle, pick:pick, randInt:randInt,
-    beep:beep, chime:chime, confetti:confetti, streakLine:streakLine, reduced:reduced
+    beep:beep, chime:chime, sfx:sfx, setMuted:setMuted, isMuted:isMuted,
+    shade:shade, grad:grad,
+    confetti:confetti, streakLine:streakLine, reduced:reduced
   };
 })();

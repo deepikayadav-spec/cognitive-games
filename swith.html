@@ -17,8 +17,10 @@
   .row{display:flex; gap:8px}
   .sym{
     width:clamp(48px,8vw,82px); height:clamp(48px,8vw,82px); border-radius:15px;
-    background:linear-gradient(165deg,rgba(255,255,255,.12),rgba(255,255,255,.04));
+    background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.03));
     border:1px solid var(--stroke); display:grid; place-items:center;
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.26), inset 0 -3px 8px rgba(0,0,0,.32),
+      0 6px 14px rgba(0,0,0,.3);
   }
   .sym svg{width:70%; height:70%}
   .arrow{width:clamp(44px,7vw,74px); color:#8BC53F}
@@ -30,9 +32,13 @@
     padding:clamp(10px,1.7vh,18px) clamp(14px,2.6vw,30px); cursor:pointer;
     transition:transform .15s cubic-bezier(.2,1.2,.4,1), box-shadow .15s, border-color .15s;
   }
-  .code:hover{transform:translateY(-5px); border-color:var(--stroke-2);
-    box-shadow:0 16px 30px rgba(0,0,0,.45)}
-  .code:active{transform:translateY(-1px) scale(.95)}
+  .code{box-shadow:0 7px 0 rgba(0,0,0,.36), inset 0 2px 0 rgba(255,255,255,.26),
+    inset 0 -2px 0 rgba(0,0,0,.28)}
+  .code:hover{transform:translateY(-4px); border-color:var(--stroke-2);
+    box-shadow:0 11px 0 rgba(0,0,0,.36), 0 20px 34px rgba(0,0,0,.45),
+    inset 0 2px 0 rgba(255,255,255,.3)}
+  .code:active{transform:translateY(4px);
+    box-shadow:0 1px 0 rgba(0,0,0,.36), inset 0 3px 8px rgba(0,0,0,.45)}
   .code.right{border-color:var(--green-lite); box-shadow:0 0 0 3px rgba(61,214,140,.5), 0 0 34px rgba(61,214,140,.3)}
   .code.wrong{border-color:var(--coral); box-shadow:0 0 0 3px rgba(243,112,90,.5)}
   .label{color:var(--muted); font-size:11.5px; font-weight:700; letter-spacing:.18em;
@@ -138,19 +144,21 @@
   var SHAPES = ['circle','square','triangle','cross','percent','times'];
 
   function shapeSVG(kind){
-    var s = '<svg viewBox="0 0 100 100" aria-hidden="true">';
-    if (kind === 'circle')   s += '<circle cx="50" cy="50" r="40" fill="' + GREEN + '"/>';
-    if (kind === 'square')   s += '<rect x="12" y="12" width="76" height="76" fill="' + GREEN + '"/>';
-    if (kind === 'triangle') s += '<polygon points="50,10 92,88 8,88" fill="' + GREEN + '"/>';
-    if (kind === 'cross')    s += '<path d="M38 8h24v30h30v24H62v30H38V62H8V38h30z" fill="' + GREEN + '"/>';
-    if (kind === 'percent')  s += '<text x="50" y="74" font-size="82" font-family="Poppins,sans-serif" font-weight="700" text-anchor="middle" fill="' + GREEN + '">%</text>';
-    if (kind === 'times')    s += '<path d="M22 12l28 28 28-28 10 10-28 28 28 28-10 10-28-28-28 28-10-10 28-28-28-28z" fill="' + GREEN + '"/>';
+    var g = CG.grad(GREEN), f = g.fill;
+    var s = '<svg viewBox="0 0 100 100" aria-hidden="true">' + g.defs;
+    if (kind === 'circle')   s += '<circle cx="50" cy="50" r="40" fill="' + f + '"/>';
+    if (kind === 'square')   s += '<rect x="12" y="12" width="76" height="76" rx="10" fill="' + f + '"/>';
+    if (kind === 'triangle') s += '<polygon points="50,10 92,88 8,88" fill="' + f + '"/>';
+    if (kind === 'cross')    s += '<path d="M38 8h24v30h30v24H62v30H38V62H8V38h30z" fill="' + f + '"/>';
+    if (kind === 'percent')  s += '<text x="50" y="74" font-size="82" font-family="Poppins,sans-serif" font-weight="800" text-anchor="middle" fill="' + f + '">%</text>';
+    if (kind === 'times')    s += '<path d="M22 12l28 28 28-28 10 10-28 28 28 28-10 10-28-28-28 28-10-10 28-28-28-28z" fill="' + f + '"/>';
     return s + '</svg>';
   }
   function arrowSVG(up){
-    return '<svg viewBox="0 0 100 60" aria-hidden="true" style="width:100%;height:auto">' +
-      (up ? '<polygon points="50,2 84,34 66,34 66,58 34,58 34,34 16,34" fill="' + GREEN + '"/>'
-          : '<polygon points="50,58 16,26 34,26 34,2 66,2 66,26 84,26" fill="' + GREEN + '"/>') +
+    var g = CG.grad(GREEN);
+    return '<svg viewBox="0 0 100 60" aria-hidden="true" style="width:100%;height:auto">' + g.defs +
+      (up ? '<polygon points="50,2 84,34 66,34 66,58 34,58 34,34 16,34" fill="url(#' + g.id + ')"/>'
+          : '<polygon points="50,58 16,26 34,26 34,2 66,2 66,26 84,26" fill="url(#' + g.id + ')"/>') +
       '</svg>';
   }
 

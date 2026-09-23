@@ -25,12 +25,17 @@
   background:linear-gradient(165deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
   backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px)}
 
-.dot{position:absolute; border-radius:50%; background:rgba(255,255,255,.26);
-  transform:translate(-50%,-50%); transition:background .15s, transform .15s, box-shadow .15s}
-.dot.lit{background:var(--green-lite); box-shadow:0 0 30px rgba(61,214,140,.7);
-  transform:translate(-50%,-50%) scale(1.14)}
-.dot.right{background:var(--green-lite); box-shadow:0 0 22px rgba(61,214,140,.55)}
-.dot.wrong{background:var(--coral); box-shadow:0 0 22px rgba(243,112,90,.5)}
+.dot{position:absolute; border-radius:50%; transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 34% 28%, rgba(255,255,255,.75), rgba(190,208,228,.35) 55%, rgba(120,140,165,.28));
+  box-shadow:inset 0 -3px 6px rgba(0,0,0,.35), 0 4px 10px rgba(0,0,0,.4);
+  transition:background .15s, transform .15s, box-shadow .15s}
+.dot.lit{background:radial-gradient(circle at 34% 28%, #A8FFD4, #3DD68C 60%, #0F8F56);
+  box-shadow:0 0 34px rgba(61,214,140,.75), inset 0 -3px 6px rgba(0,0,0,.3);
+  transform:translate(-50%,-50%) scale(1.16)}
+.dot.right{background:radial-gradient(circle at 34% 28%, #A8FFD4, #3DD68C 60%, #0F8F56);
+  box-shadow:0 0 24px rgba(61,214,140,.6), inset 0 -3px 6px rgba(0,0,0,.3)}
+.dot.wrong{background:radial-gradient(circle at 34% 28%, #FFB3A4, #F3705A 60%, #B93A26);
+  box-shadow:0 0 24px rgba(243,112,90,.55), inset 0 -3px 6px rgba(0,0,0,.3)}
 .dot.click{cursor:pointer}
 .dot.click:hover{background:rgba(255,255,255,.44); transform:translate(-50%,-50%) scale(1.14)}
 .dot.click:active{transform:translate(-50%,-50%) scale(.95)}
@@ -48,7 +53,9 @@
   padding:14px; display:grid; gap:9px}
 .pat span{display:grid; place-items:center}
 .pat i{display:block; background:var(--ink)}
-.pat i.on{width:20px; height:20px; border-radius:4px}
+.pat i.on{width:20px; height:20px; border-radius:5px;
+  background:linear-gradient(180deg,#FFFFFF,#C2D2E4);
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.25), 0 2px 4px rgba(0,0,0,.4)}
 .pat i.off{width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.3)}
 @media (max-width:620px){ .pat i.on{width:14px;height:14px} .pat{gap:6px; padding:10px} }
 
@@ -58,11 +65,15 @@
   background:linear-gradient(165deg,rgba(255,255,255,.12),rgba(255,255,255,.04));
   font-size:clamp(16px,2.4vw,22px); font-weight:800; padding:13px 44px;
   transition:transform .15s cubic-bezier(.2,1.2,.4,1), box-shadow .15s, border-color .15s}
+.answers button{box-shadow:0 7px 0 rgba(0,0,0,.36), inset 0 2px 0 rgba(255,255,255,.26)}
 .answers button:hover{transform:translateY(-4px); border-color:var(--stroke-2);
-  box-shadow:0 14px 28px rgba(0,0,0,.42)}
-.answers button:active{transform:translateY(0) scale(.94)}
-.answers button:first-child{background:linear-gradient(135deg,#1565D8,#4B8DF8); border-color:transparent;
-  box-shadow:0 8px 24px rgba(21,101,216,.4)}
+  box-shadow:0 11px 0 rgba(0,0,0,.36), 0 20px 32px rgba(0,0,0,.44)}
+.answers button:active{transform:translateY(4px); box-shadow:0 1px 0 rgba(0,0,0,.36),
+  inset 0 3px 8px rgba(0,0,0,.45)}
+.answers button:first-child{background:linear-gradient(180deg,#4B8DF8,#1565D8); border-color:transparent;
+  box-shadow:0 7px 0 #0B3C8C, 0 18px 30px rgba(21,101,216,.45),
+    inset 0 2px 0 rgba(255,255,255,.4)}
+.answers button:first-child:active{box-shadow:0 1px 0 #0B3C8C, inset 0 3px 8px rgba(0,0,0,.35)}
 
 /* ---------- feedback widget ---------- */
 .nfb-fab,.nfb-back{
@@ -247,19 +258,13 @@
   var S = null, tickTimer = null, phaseTimer = null, rafId = 0;
 
   /* ---------------- sound: three short blips, no assets ---------------- */
-  var actx = null, muted = false;
+  var muted = false;
+  /* the shared synth in common.js does the actual work */
   function beep(freq, ms, type){
-    if (muted) return;
-    try {
-      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
-      var o = actx.createOscillator(), g = actx.createGain();
-      o.type = type || 'sine'; o.frequency.value = freq;
-      g.gain.setValueAtTime(0.06, actx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + ms / 1000);
-      o.connect(g); g.connect(actx.destination);
-      o.start(); o.stop(actx.currentTime + ms / 1000);
-    } catch (e) { /* audio blocked; the game does not need it */ }
+    if (muted || !window.CG) return;
+    CG.beep(freq, ms, type);
   }
+  function sfx(name){ if (!muted && window.CG) CG.sfx(name); }
 
   /* ---------------- helpers ---------------- */
   function el(tag, cls){ var e = document.createElement(tag); if (cls) e.className = cls; return e; }
@@ -430,7 +435,7 @@
     for (var j = 0; j < ROUNDS; j++){
       S.targets.push(pool.splice((Math.random() * pool.length) | 0, 1)[0]);
     }
-    document.getElementById('lvl').textContent = 'Level ' + S.level;
+    document.getElementById('lvl').textContent = 'Lvl ' + S.level;
     memorise();
   }
 
@@ -440,7 +445,7 @@
     drawDots(S.dots, false);
     var target = S.dots[S.targets[S.round]];
     target.el.classList.add('lit');
-    beep(660, 120);
+    sfx('select');
     runBar(MEMO_MS);
     phaseTimer = setTimeout(function (){
       target.el.classList.remove('lit');
@@ -470,9 +475,10 @@
       S.symAsked++;
       if (said === q.answer){
         S.symRight++; addScore(3); flash('+3', true); bumpStreak(true);
-        if (window.CG){ S.streak >= 3 ? CG.chime() : beep(880, 140); CG.confetti(S.streak >= 3 ? 34 : 16); }
+        sfx(S.streak >= 3 ? 'streak' : 'correct');
+        if (window.CG) CG.confetti(S.streak >= 3 ? 34 : 16);
       } else {
-        addScore(-1); flash('−1', false); beep(220, 200, 'square'); bumpStreak(false);
+        addScore(-1); flash('−1', false); sfx('wrong'); bumpStreak(false);
       }
       setTimeout(nextRound, 620);
     }
@@ -518,12 +524,12 @@
       if (index === wanted){
         S.dotsRight++;
         node.classList.add('right');
-        addScore(3); beep(880, 130); bumpStreak(true);
+        addScore(3); sfx('correct'); bumpStreak(true);
         if (window.CG) CG.confetti(14, node.getBoundingClientRect().left + 16,
                                        node.getBoundingClientRect().top + 16);
       } else {
         node.classList.add('wrong');
-        addScore(-1); beep(220, 200, 'square'); bumpStreak(false);
+        addScore(-1); sfx('wrong'); bumpStreak(false);
         // show where it should have been
         var should = S.dots[wanted].el;
         should.classList.add('right');
@@ -563,6 +569,7 @@
       S.score >= 45 ? 'Strong working memory' :
       S.score >= 20 ? 'Solid' :
       S.score >= 0  ? 'Room to improve' : 'Guessing costs you';
+    sfx(S.score > 0 ? 'win' : 'over');
     show('endScreen', true);
   }
 
@@ -583,6 +590,7 @@
     document.getElementById('clock').textContent = fmt(SESSION_S);
     show('introScreen', false); show('endScreen', false); show('pauseScreen', false);
     tickTimer = setInterval(tick, 1000);
+    sfx('start');
     startLevel();
   }
 
@@ -608,7 +616,9 @@
   document.getElementById('btnPause').addEventListener('click', function (){ togglePause(); });
   document.getElementById('btnSound').addEventListener('click', function (){
     muted = !muted;
+    if (window.CG) CG.setMuted(muted);
     this.textContent = muted ? '🔇' : '🔊';
+    if (!muted) sfx('select');
   });
   window.addEventListener('keydown', function (e){
     var t = e.target;
